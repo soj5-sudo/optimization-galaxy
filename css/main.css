@@ -912,3 +912,36 @@ body.presenting #cycle { padding-top: var(--s-7); }
 body.presenting section { padding: var(--s-5) 0; }
 body.presenting { padding-bottom: 120px; }
 body.presenting .demo-panel { position: sticky; top: 78px; z-index: 40; }
+
+/* ---------- the film: how the X-ray is taken ---------- */
+
+.film {
+  position: fixed;
+  inset: 0;
+  z-index: 75;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: film-in 340ms var(--ease-out);
+}
+.film[hidden] { display: none; }
+.film.out { opacity: 0; transition: opacity 400ms var(--ease-out); }
+@keyframes film-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .film { animation: none; } }
+.film video {
+  max-height: 82vh;
+  max-width: 92vw;
+  border-radius: var(--r-panel);
+  border: 1px solid var(--border-hairline);
+}
+.film-tag {
+  position: absolute;
+  top: 26px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}

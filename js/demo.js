@@ -4,7 +4,7 @@
 
 const Demo = (() => {
 
-  const DWELL_MS = 11000;      // 8 beats inside 90 seconds, including the work
+  const DWELL_MS = 10000;      // the film runs its own length, the rest hold ten seconds
   const wait = ms => new Promise(r => setTimeout(r, ms));
 
   const state = { running: false, paused: false, skip: false, beat: 0 };
@@ -18,10 +18,16 @@ const Demo = (() => {
 
   const BEATS = [
     {
+      key: 'film',
+      title: 'The X-ray comes off the machine',
+      caption: 'This is how the scan is taken. The Galaxy machine X-rays the rough and maps what is inside it.',
+      point: null,
+    },
+    {
       key: 'desk',
-      title: 'Three people, one record',
-      caption: 'One stone record. Wasi runs manufacturing, Anik takes it into product, I buy the rough. Same record, same time.',
-      point: { sel: '#desk-list', label: 'Three roles, one session' },
+      title: 'Four companies, one record',
+      caption: 'That parcel touches four companies in three countries. Today that runs on twenty WhatsApp threads. Here it is one record.',
+      point: { sel: '#desk-list', label: 'One record, not twenty threads' },
     },
     {
       key: 'inbox',
@@ -30,9 +36,15 @@ const Demo = (() => {
       point: { sel: '#inbox-count', label: 'Pulled from the documents' },
     },
     {
+      key: 'compliance',
+      title: 'Origin first',
+      caption: 'Origin is checked before anything else. Every field against the other two documents, then the statement customs demands.',
+      point: { sel: '#body-compliance .verdict', label: 'Statement filed' },
+    },
+    {
       key: 'plan',
-      title: 'Cut planning on the rough',
-      caption: 'A real Galaxy scan. It maps the inclusions and returns the plan that yields the most.',
+      title: 'The model runs on the rough',
+      caption: 'Now the same X-ray you just watched. The model maps the inclusions and returns the plan that yields the most.',
       point: { sel: '#stat-row .stat:nth-child(4)', label: 'Yield off this rough' },
     },
     {
@@ -42,27 +54,21 @@ const Demo = (() => {
       point: { sel: '#body-planning .plan-table', label: 'Planned against actual' },
     },
     {
-      key: 'compliance',
-      title: 'Compliance files the statement',
-      caption: 'Every field checked against the other two documents. Seven checks passed. The G7 statement is generated, not typed.',
-      point: { sel: '#body-compliance .verdict', label: 'Statement filed' },
-    },
-    {
       key: 'quote',
       title: 'Duty, then the bid',
-      caption: 'Yield from the plan, duty from where it was polished. Compliance proved that field, so the price cannot contradict the filing.',
+      caption: 'Where it was polished sets the import duty. Compliance proved that field, so the price cannot contradict the filing.',
       point: { sel: '#body-quoting .kv div:last-child', label: 'The most I can pay' },
     },
     {
       key: 'blocked',
-      title: 'Blocked on our side',
-      caption: 'Second stone. The invoice says Botswana. The certificate says Russian Federation. Stopped here, not at the border.',
+      title: 'Blocked at the desk',
+      caption: 'Second stone. The invoice says Botswana. The certificate says Russian Federation. It stops at the desk, not the border.',
       point: { sel: '#body-blocked .verdict', label: 'Stopped before it ships' },
     },
     {
       key: 'passport',
-      title: 'The stone passport',
-      caption: 'One record. Every field carrying the document it came from. Ten people build this by hand in seven to nine days.',
+      title: 'One record per stone',
+      caption: 'Three jobs, one record per stone. Every field carrying the document it came from.',
       point: { sel: '#passport-table', label: 'Every field, its source' },
     },
   ];
@@ -173,6 +179,52 @@ const Demo = (() => {
     setStep(b.key, 'done');
   }
 
+  // ---------- the film ----------
+  // fails open: if the file will not play, the run carries on without it
+
+  async function playFilm(ui) {
+    const film = document.getElementById('film');
+    const v = document.getElementById('film-video');
+    if (!film || !v) return;
+    film.hidden = false;
+    ui.log('FACTORY', 'Galaxy machine scanning the rough, X-ray captured');
+
+    const bail = msg => {
+      film.hidden = true;
+      ui.log('FACTORY', msg);
+    };
+
+    try {
+      v.currentTime = 0;
+      await v.play();
+    } catch (e) {
+      bail('Film skipped, the browser blocked playback');
+      return;
+    }
+
+    // confirm it is actually advancing. A suspended or blocked video must not
+    // hold the run behind a black screen.
+    await wait(1200);
+    if (v.paused || v.currentTime < 0.2) {
+      bail('Film skipped, playback did not start');
+      return;
+    }
+
+    await new Promise(done => {
+      let settled = false;
+      const finish = () => { if (!settled) { settled = true; done(); } };
+      v.addEventListener('ended', finish, { once: true });
+      v.addEventListener('error', finish, { once: true });
+      const left = Math.max(1000, ((v.duration || 17) - v.currentTime) * 1000 + 1500);
+      setTimeout(finish, left);
+    });
+
+    film.classList.add('out');
+    await wait(420);
+    film.hidden = true;
+    film.classList.remove('out');
+  }
+
   // ---------- session ----------
 
   async function joinDeskMember(person) {
@@ -221,8 +273,25 @@ const Demo = (() => {
     for (const b of BEATS) setStep(b.key, 'pending');
 
     try {
-      // 1. the desk
+      // 0. the film: how the X-ray is taken
       await runBeat(0, async () => {
+        await playFilm(ui);
+        // the same scan the film ends on now lands on the record
+        const roughBtn = document.querySelector('#samples button[data-src*="rough-327"]');
+        if (roughBtn) { roughBtn.click(); await wait(500); }
+        ui.log('RECORD', 'Scan 327.8 received from the factory, record opened');
+      });
+
+      // the record exists from here, so compliance can run before the plan
+      const record = Records.create({
+        scanName: app.imageName || 'Galaxy rough scan 327.8',
+        scanSource: 'factory scan',
+        docs: Records.SOURCES[app.imageDocKey || 'IGI-7996745173'],
+      });
+      app.record = record;
+
+      // 1. the desk
+      await runBeat(1, async () => {
         focus('#desk-panel', 'center');
         ui.log('SESSION', 'Opening a shared session on this stone');
         if (!Session.state.id) {
@@ -238,26 +307,30 @@ const Demo = (() => {
           if (p.name !== 'Soham') await joinDeskMember(p);
           deskCard(p, ui);
           ui.log('SESSION', `${p.name} joined as <span class="num">${p.role}</span>`);
-          await wait(700);
+          await wait(600);
         }
-        ui.log('SESSION', `Anyone on <span class="num">${urls[0]}</span> is inside the same record`);
       });
 
-      // 2. the inbox
-      await runBeat(1, async () => {
+      // 2. the documents
+      await runBeat(2, async () => {
         document.getElementById('inbox-panel').hidden = false;
         focus('#inbox-panel', 'start');
-        const docKey = app.imageDocKey || 'IGI-7996745173';
-        await ingest(docKey, ui);
+        await ingest(app.imageDocKey || 'IGI-7996745173', ui);
       });
 
-      // 3. cut planning
-      await runBeat(2, async () => {
+      // 3. compliance, before anything is planned or priced
+      await runBeat(3, async () => {
+        focus('.agent-desk', 'start');
+        ui.working('compliance', 'Checking');
+        await Agents.compliance(record, ui);
+        ui.renderCompliance(record);
+      });
+
+      // 4. the model on the rough
+      await runBeat(4, async () => {
         ui.working('planning', 'Scanning');
-        const roughBtn = document.querySelector('#samples button[data-src*="rough-327"]');
-        if (roughBtn) { roughBtn.click(); await wait(700); }
         focus('.console-grid', 'start');
-        await wait(600);
+        await wait(400);
         await app.run(false, { noScroll: true });
         if (!app.record || !app.record.plan) {
           ui.log('MODEL', 'No usable plan for this scan. Pick another scan and run the model again');
@@ -266,35 +339,26 @@ const Demo = (() => {
         await wait(300);
         focus('.ba-grid', 'center');
       });
-      const record = app.record;
 
-      // 4. cutting
-      await runBeat(3, async () => {
+      // 5. the floor
+      await runBeat(5, async () => {
         focus('.agent-desk', 'start');
         ui.working('planning', 'On the wheel');
-        await wait(500);
+        await wait(400);
         await Agents.cutting(record, ui);
         ui.renderCutting(record);
       });
 
-      // 5. compliance
-      await runBeat(4, async () => {
-        focus('.agent-desk', 'start');
-        ui.working('compliance', 'Checking');
-        await Agents.compliance(record, ui);
-        ui.renderCompliance(record);
-      });
-
-      // 6. quoting
-      await runBeat(5, async () => {
+      // 6. the price
+      await runBeat(6, async () => {
         focus('.agent-desk', 'start');
         ui.working('quoting', 'Pricing');
         await Agents.quoting(record, ui);
         ui.renderQuote(record);
       });
 
-      // 7. the blocked stone
-      await runBeat(6, async () => {
+      // 7. the stone that is stopped
+      await runBeat(7, async () => {
         ui.log('SESSION', 'Second stone on the same order, a 1.00 ct');
         document.getElementById('inbox-panel').hidden = false;
         await ingest('GIA-7373304073', ui, true);
@@ -312,9 +376,9 @@ const Demo = (() => {
       });
 
       // 8. the passport
-      await runBeat(7, async () => {
+      await runBeat(8, async () => {
         ui.renderPassport(record);
-        await wait(400);
+        await wait(300);
         focus('#passport', 'center');
         ui.log('RECORD', `Passport <span class="num">${record.id}</span> complete. ${record.audit.length} audited actions, one record`);
       });
@@ -387,39 +451,34 @@ const Demo = (() => {
     const rule = '-'.repeat(72);
     const L = [];
     L.push('OPTIMIZATION GALAXY, SPOKEN SCRIPT');
-    L.push('Eight beats, about eleven seconds each. The whole run is one minute twenty eight.');
+    L.push('Nine beats. The film runs seventeen seconds, the rest hold ten. Total about one minute forty.');
     L.push('The subtitle on screen is the short version. The lines below are what you say.');
     L.push('Pause stops the clock. Next moves on early. Nothing runs away from you.');
     L.push(rule);
     L.push('');
     L.push('BEFORE YOU RECORD');
     L.push('  node server.js, then open http://localhost:4610 full screen.');
-    L.push('  Press Start model, then read beat 1. When the bar fills, it moves itself.');
+    L.push('  Press Start model. The factory film opens it, then the run walks itself.');
+    L.push('  Read beat 1 over the film. When the bar fills, it moves on by itself.');
     L.push('  Subtitles burn in at the bottom, so the recording carries the story on its own.');
     L.push('');
     L.push(rule);
 
     const spoken = [
-      "I press start once, and the software walks the file from here. One stone record, three people on it. Wasi runs the factory floor. Anik takes the polished goods into product. I buy the rough. Everyone is on the same record at the same time, not three spreadsheets and a mail thread. Nothing here is a copy. When a field changes, it changes for all of us. That matters, because the next twenty minutes decide whether this parcel can legally move.",
-
-      "Nobody types a filing. The mining certificate comes in from Botswana. The lab report comes in from IGI Antwerp. The invoice comes off our own export desk. The agent opens each mail, reads the document, pulls the fields, and writes them into the record. Fifteen fields, none of them typed by a person. Every number on the statement later traces back to one of these three documents. Typed fields are where the mistakes come from.",
-
-      "This is a real Galaxy scan of one of my roughs. The model maps the inclusions, runs the placement options, and returns the plan that yields the most. Seventeen point six nine carats of rough. Three polished stones. Four point seven three carats recovered, twenty six point seven percent. Across the trade only forty to forty two carats in every hundred survive as polished. The plan decides where you land in that band. The scan analysis runs live in the browser.",
-
-      "The plan goes to the floor and Wasi cuts it. The cutting agent sends back what actually came off the wheel, stone by stone, and writes it into the same record. Planned against actual, on this stone, forever. Next month I can ask whether my planner is honest, and the record answers. Most houses lose this the moment the parcel leaves the office. Here the report lands back where the plan started. No one re-keys a thing.",
-
-      "Now compliance. It takes every field and checks it against the other two documents. Carat against the invoice. Origin against the mining certificate. Then the sanctioned source screen. Seven checks, seven passed, and the European Due Diligence Statement is generated, not typed. Since the first of January twenty twenty six, no natural polished stone at half a carat or above moves into those markets without one. That statement is the gate. Without it the parcel does not enter Europe.",
-
-      "Then the price. Yield comes off the cut plan. Duty comes off the country of polish, and compliance already proved that field, so the quote cannot contradict the filing. Take out duty, manufacturing and margin, and the most I can pay for that rough is forty three thousand, three hundred and twenty one dollars. Figures here are indicative. That is my ceiling. Above it I am buying a loss, and I know that before I bid, not after.",
-
-      "Here is the one that matters. Second stone, same order. The invoice declares Botswana and reads completely clean. The mining certificate says Russian Federation. The two documents disagree, so the filing stops here, on our side, not at the border. Get that field wrong and it costs up to forty percent of the shipment value plus seizure. On a sanctioned stone it is three hundred seventy seven thousand, seven hundred dollars per violation, or twice the transaction value.",
-
-      "That is the passport. One record, every field carrying the document it came from, and the audit trail underneath it. Origin, weight, colour, clarity, cut plan, actual yield, duty, price, statement. Today about ten people build this by hand over seven to nine days. This ran in one pass, and the compliance, the price and the cut plan all came off the same record, so they cannot disagree. Hand it to the buyer, the bank or the auditor and it holds. Closing line Three jobs, one record per stone. Compliant, priced right, cut for the yield.",
+      "That is our factory. The Galaxy machine X-rays the rough and maps every inclusion inside it. What you are watching is the scan being taken.",
+      "That one parcel touches four companies in three countries. Today that runs on about twenty WhatsApp threads. We put all four on the same record.",
+      "Nobody types a filing. Mining certificate, lab report, invoice. The agent reads each mail and pulls fifteen fields straight out of the documents.",
+      "Origin first, always. Every field checked against the other two documents, then the Due Diligence Statement. Mandatory in the EU since January twenty twenty six.",
+      "Now the same X-ray from the film. The model maps the inclusions and returns the plan that yields the most. Only forty carats in a hundred survive.",
+      "The floor cuts it. What came off the wheel lands back on the same record, beside what was planned, so I can see the variance.",
+      "Where it was polished sets the import duty. Compliance already proved that field, so the price and the filing cannot disagree. Forty three thousand is my ceiling.",
+      "Second stone. The invoice says Botswana, the certificate says Russian Federation. Stopped at the desk. At the border that is forty percent of the shipment plus seizure.",
+      "Three jobs, one record per stone. Compliance, price and cut plan off the same facts. Ten people do this by hand in nine days. That was ninety seconds.",
     ];
 
     BEATS.forEach((b, i) => {
       L.push('');
-      L.push(`BEAT ${i + 1}, ${b.title.toUpperCase()}   (about 11 seconds)`);
+      L.push(`BEAT ${i + 1}, ${b.title.toUpperCase()}   (${b.key === 'film' ? 'about 17 seconds, the film' : 'about 10 seconds'})`);
       L.push('  Subtitle: ' + b.caption);
       if (b.point) L.push('  Pointer lands on: ' + b.point.label);
       L.push('  Say:');

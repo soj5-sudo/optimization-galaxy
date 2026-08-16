@@ -173,12 +173,16 @@
         els.results.hidden = false;
         Report.renderResults(an, result, els);
 
-        // open the record for this stone and write the plan onto it
-        app.record = Records.create({
-          scanName: app.imageName,
-          scanSource: app.imageRef && app.imageRef.kind === 'sample' ? 'bundled scan' : 'uploaded scan',
-          docs: app.imageDocKey ? Records.SOURCES[app.imageDocKey] : Records.SOURCES['IGI-7996745173'],
-        });
+        // reuse the record already open on this stone, so compliance work done
+        // before the plan is not thrown away. Only open a new one for a new stone.
+        const docs = Records.SOURCES[app.imageDocKey || 'IGI-7996745173'];
+        if (!app.record || app.record.docs !== docs) {
+          app.record = Records.create({
+            scanName: app.imageName,
+            scanSource: app.imageRef && app.imageRef.kind === 'sample' ? 'bundled scan' : 'uploaded scan',
+            docs,
+          });
+        }
         app.record.plan = result;
         Records.log(app.record, 'optimization', 'Cut plan produced',
           `${result.stones.length} stones, ${result.totalCarat.toFixed(2)} ct, ${result.yieldPct.toFixed(1)}% yield`);
