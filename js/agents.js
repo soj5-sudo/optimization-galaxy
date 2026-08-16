@@ -114,19 +114,19 @@ const Agents = (() => {
     const say = t => ui.log('COMPLIANCE', t);
     const d = record.docs;
     say(`Opening record <span class="num">${record.id}</span>, pulling three source documents`);
-    await wait(500);
+    await wait(225);
     say(`Mining: KP certificate <span class="num">${d.mining.kpCertificate}</span>, ${d.mining.countryOfOrigin}, ${d.mining.mine}`);
-    await wait(380);
+    await wait(171);
     say(`Lab: ${d.lab.authority} report <span class="num">${d.lab.reportNumber}</span>, ${d.lab.caratWeight.toFixed(2)} ct ${d.lab.colorGrade} ${d.lab.clarityGrade}`);
-    await wait(380);
+    await wait(171);
     say(`Invoice: <span class="num">${d.invoice.number}</span>, declared origin ${d.invoice.declaredOrigin}, polished in ${d.invoice.countryOfPolish}`);
-    await wait(420);
+    await wait(189);
     say('Cross-checking every filing field across all three documents');
-    await wait(560);
+    await wait(252);
 
     const { checks, blockers, needsFiling } = runChecks(record, opts);
     for (const c of checks) {
-      await wait(240);
+      await wait(108);
       if (c.ok) say(`Pass: ${c.name}. ${c.detail}`);
       else say(`<span class="bad">Blocked: ${c.name}. ${c.detail}</span>`);
       if (ui.onCheck) ui.onCheck(c);
@@ -145,7 +145,7 @@ const Agents = (() => {
     Records.log(record, 'compliance', passed ? 'DDS filed' : 'Filing blocked',
       passed ? ddsRef : `${blockers.length} blocking mismatch${blockers.length > 1 ? 'es' : ''}`);
 
-    await wait(420);
+    await wait(189);
     if (passed) {
       say(`Due Diligence Statement <span class="num">${ddsRef}</span> filed with export documents. Origin ${d.mining.countryOfOrigin}, evidenced by three agreeing documents`);
     } else {
@@ -166,7 +166,7 @@ const Agents = (() => {
     if (!c) { say('Waiting on compliance. A price without proven origin is not a price'); return null; }
 
     say('Reading yield from the cut plan and origin from the filed record');
-    await wait(460);
+    await wait(207);
 
     const plan = record.plan;
     const planCarat = plan ? plan.totalCarat : d.lab.caratWeight;
@@ -176,20 +176,20 @@ const Agents = (() => {
     const ppc = Planner.pricePerCarat(d.lab.clarityGrade, d.lab.caratWeight, 'round');
     const gradedValue = ppc * d.lab.caratWeight;
     say(`Graded stone: ${d.lab.caratWeight.toFixed(2)} ct ${d.lab.colorGrade} ${d.lab.clarityGrade} at <span class="num">${money(ppc)}</span> per carat, <span class="num">${money(gradedValue)}</span>`);
-    await wait(420);
+    await wait(189);
 
     // revenue is the whole planned output, not just the graded stone
     const revenue = plan ? plan.totalValue : gradedValue;
     if (plan) {
       say(`Planned output across <span class="num">${plan.stones.length}</span> stones, ${planCarat.toFixed(2)} ct, revenue <span class="num">${money(revenue)}</span>`);
-      await wait(400);
+      await wait(180);
     }
 
     const tariffPct = TARIFF_BY_POLISH[d.invoice.countryOfPolish];
     const tariffKnown = tariffPct !== undefined;
     const duty = tariffKnown ? revenue * tariffPct / 100 : 0;
     say(`Country of polish is ${d.invoice.countryOfPolish}, which sets the import duty at <span class="num">${tariffKnown ? tariffPct.toFixed(1) + '%' : 'Not set'}</span>, <span class="num">${money(duty)}</span>. That field came from the same record compliance just proved`);
-    await wait(460);
+    await wait(207);
 
     const roughCt = d.mining.roughWeightCt;
     const manufacturing = roughCt * CUTTING_COST_PER_ROUGH_CT;
@@ -207,7 +207,7 @@ const Agents = (() => {
     };
     Records.log(record, 'quoting', 'Quote produced', `${money(roughBid)} rough ceiling, duty ${tariffKnown ? tariffPct + '%' : 'unknown'}`);
 
-    await wait(300);
+    await wait(135);
     if (c.status !== 'filed') {
       say('<span class="bad">Quote held. Compliance has not cleared this record, so the price cannot be released</span>');
     }
@@ -222,9 +222,9 @@ const Agents = (() => {
     if (!plan) { say('No plan on the record yet'); return null; }
 
     say(`Plan received: <span class="num">${plan.stones.length}</span> stones, ${plan.totalCarat.toFixed(2)} ct target`);
-    await wait(460);
+    await wait(207);
     say(`Loading saw job${plan.saw ? ` at ${plan.saw.angleDeg.toFixed(1)} deg, kerf 0.15 mm` : ', no separation required'}`);
-    await wait(520);
+    await wait(234);
 
     // executed weights land slightly off plan, as they do on a real bench
     const executed = plan.stones.map((s, i) => {
@@ -234,7 +234,7 @@ const Agents = (() => {
     const actualTotal = executed.reduce((a, s) => a + s.actual, 0);
 
     for (const s of executed) {
-      await wait(300);
+      await wait(135);
       say(`Stone ${s.id} off the wheel at <span class="num">${s.actual.toFixed(2)} ct</span> against ${s.planned.toFixed(2)} ct planned`);
     }
 
@@ -249,7 +249,7 @@ const Agents = (() => {
     };
     Records.log(record, 'cutting', 'Cutting complete', `${actualTotal.toFixed(2)} ct actual, ${varPct.toFixed(1)}% vs plan`);
 
-    await wait(360);
+    await wait(162);
     say(`Cutting report ready: <span class="num">${actualTotal.toFixed(2)} ct</span> recovered, <span class="num">${varPct.toFixed(1)}%</span> against plan. Sending back to the record`);
     return record.cutting;
   }

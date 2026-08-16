@@ -4,7 +4,7 @@
 
 const Demo = (() => {
 
-  const DWELL_MS = 30000;      // time on each beat, including the work itself
+  const DWELL_MS = 11000;      // 8 beats inside 90 seconds, including the work
   const wait = ms => new Promise(r => setTimeout(r, ms));
 
   const state = { running: false, paused: false, skip: false, beat: 0 };
@@ -20,42 +20,50 @@ const Demo = (() => {
     {
       key: 'desk',
       title: 'Three people, one record',
-      line: 'The desk opens as a shared session. Wasi on manufacturing, Anik on creation, Soham on sourcing, all inside the same stone record.',
+      caption: 'One stone record. Wasi runs manufacturing, Anik takes it into product, I buy the rough. Same record, same time.',
+      point: { sel: '#desk-list', label: 'Three roles, one session' },
     },
     {
       key: 'inbox',
       title: 'Documents in, fields out',
-      line: 'Nobody types a filing. The mining certificate, the lab report and the invoice come in by mail, and the agent reads the fields straight out of them.',
+      caption: 'Nobody types a filing. Mining certificate, lab report, invoice. The agent reads each mail and pulls the fields out.',
+      point: { sel: '#inbox-count', label: 'Pulled from the documents' },
     },
     {
       key: 'plan',
       title: 'Cut planning on the rough',
-      line: 'A real Galaxy scan of the rough. The model maps the inclusions and searches the placement space for the plan that yields the most.',
+      caption: 'A real Galaxy scan. It maps the inclusions and returns the plan that yields the most.',
+      point: { sel: '#stat-row .stat:nth-child(4)', label: 'Yield off this rough' },
     },
     {
       key: 'cut',
       title: 'The floor cuts it',
-      line: 'The plan goes to the factory. The cutting agent sends back what actually came off the wheel, into the same record.',
+      caption: 'The floor cuts it. What came off the wheel lands back in the same record, beside what was planned.',
+      point: { sel: '#body-planning .plan-table', label: 'Planned against actual' },
     },
     {
       key: 'compliance',
       title: 'Compliance files the statement',
-      line: 'Every field checked against the other two documents. Then the G7 Due Diligence Statement, generated, not typed.',
+      caption: 'Every field checked against the other two documents. Seven checks passed. The G7 statement is generated, not typed.',
+      point: { sel: '#body-compliance .verdict', label: 'Statement filed' },
     },
     {
       key: 'quote',
       title: 'Duty, then the bid',
-      line: 'Yield from the plan, duty from the country of polish. Compliance already proved that field, so the price cannot contradict the filing.',
+      caption: 'Yield from the plan, duty from where it was polished. Compliance proved that field, so the price cannot contradict the filing.',
+      point: { sel: '#body-quoting .kv div:last-child', label: 'The most I can pay' },
     },
     {
       key: 'blocked',
       title: 'Blocked on our side',
-      line: 'Second stone. The invoice says Botswana. The mining certificate says Russian Federation. It stops here, on our side.',
+      caption: 'Second stone. The invoice says Botswana. The certificate says Russian Federation. Stopped here, not at the border.',
+      point: { sel: '#body-blocked .verdict', label: 'Stopped before it ships' },
     },
     {
       key: 'passport',
       title: 'The stone passport',
-      line: 'One record. Every field carrying the document it came from, and the audit trail behind it.',
+      caption: 'One record. Every field carrying the document it came from. Ten people build this by hand in seven to nine days.',
+      point: { sel: '#passport-table', label: 'Every field, its source' },
     },
   ];
 
@@ -70,11 +78,60 @@ const Demo = (() => {
     const b = BEATS[i];
     const n = document.getElementById('beat-index');
     const t = document.getElementById('beat-title');
-    const l = document.getElementById('beat-line');
     if (n) n.textContent = `${String(i + 1).padStart(2, '0')} of ${String(BEATS.length).padStart(2, '0')}`;
     if (t) t.textContent = b.title;
-    if (l) l.textContent = b.line;
+    const l = document.getElementById('beat-line');
+    if (l) l.textContent = b.caption;
+    caption(b.caption);
   }
+
+  // ---------- subtitles ----------
+
+  function caption(text) {
+    const bar = document.getElementById('caption-bar');
+    const line = document.getElementById('caption-line');
+    if (!bar || !line) return;
+    bar.hidden = false;
+    line.textContent = text || '';
+  }
+
+  function clearCaption() {
+    const bar = document.getElementById('caption-bar');
+    if (bar) bar.hidden = true;
+  }
+
+  // ---------- pointer ----------
+  // parks a marker on the exact value being talked about
+
+  function point(target) {
+    const marker = document.getElementById('pointer');
+    const label = document.getElementById('pointer-label');
+    if (!marker || !target) return;
+    const el = document.querySelector(target.sel);
+    if (!el) { hidePoint(); return; }
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 && r.height === 0) { hidePoint(); return; }
+    const pad = 8;
+    marker.hidden = false;
+    marker.style.top = `${r.top + window.scrollY - pad}px`;
+    marker.style.left = `${r.left + window.scrollX - pad}px`;
+    marker.style.width = `${r.width + pad * 2}px`;
+    marker.style.height = `${r.height + pad * 2}px`;
+    label.textContent = target.label || '';
+    label.hidden = !target.label;
+  }
+
+  function hidePoint() {
+    const marker = document.getElementById('pointer');
+    if (marker) marker.hidden = true;
+  }
+
+  function repoint() {
+    const b = BEATS[state.beat];
+    if (state.running && b && b.point) point(b.point);
+  }
+  window.addEventListener('scroll', () => { if (state.running) repoint(); }, { passive: true });
+  window.addEventListener('resize', () => { if (state.running) repoint(); });
 
   function setHold(frac) {
     const bar = document.getElementById('beat-hold');
@@ -106,10 +163,12 @@ const Demo = (() => {
     state.beat = i;
     const b = BEATS[i];
     setStep(b.key, 'active');
+    hidePoint();
     showBeat(i);
     setHold(0);
     const t0 = performance.now();
     await work();
+    if (b.point) { await wait(120); point(b.point); }
     await hold(t0);
     setStep(b.key, 'done');
   }
@@ -151,6 +210,7 @@ const Demo = (() => {
     const btn = document.getElementById('demo-btn');
     btn.disabled = true;
     btn.textContent = 'Model running';
+    document.body.classList.add('presenting');   // marketing chrome out, product surface only
     document.getElementById('demo-panel').hidden = false;
     document.getElementById('demo-controls').hidden = false;
     document.getElementById('desk-list').innerHTML = '';
@@ -178,7 +238,7 @@ const Demo = (() => {
           if (p.name !== 'Soham') await joinDeskMember(p);
           deskCard(p, ui);
           ui.log('SESSION', `${p.name} joined as <span class="num">${p.role}</span>`);
-          await wait(1400);
+          await wait(700);
         }
         ui.log('SESSION', `Anyone on <span class="num">${urls[0]}</span> is inside the same record`);
       });
@@ -203,7 +263,7 @@ const Demo = (() => {
           ui.log('MODEL', 'No usable plan for this scan. Pick another scan and run the model again');
           throw new Error('no plan');
         }
-        await wait(500);
+        await wait(300);
         focus('.ba-grid', 'center');
       });
       const record = app.record;
@@ -275,6 +335,9 @@ const Demo = (() => {
       btn.disabled = false;
       btn.textContent = 'Start model';
       document.getElementById('demo-controls').hidden = true;
+      hidePoint();
+      document.body.classList.remove('presenting');
+      setTimeout(clearCaption, 6000);
     }
   }
 
@@ -292,16 +355,16 @@ const Demo = (() => {
       const node = Inbox.card(m);
       list.appendChild(node);
       ui.log('INBOX', `${Inbox.LABEL[m.type]} received from ${m.from}, ${m.file}`);
-      await wait(900);
+      await wait(420);
       node.dataset.open = 'true';
       for (const [name, value] of m.fields) {
         node._fields.appendChild(Inbox.fieldRow(name, value));
         pulled += 1;
         counter.textContent = `${pulled} of ${total} fields`;
-        await wait(260);
+        await wait(110);
       }
       ui.log('INBOX', `Pulled <span class="num">${m.fields.length}</span> fields from ${m.file}, nothing typed by hand`);
-      await wait(500);
+      await wait(220);
     }
     counter.textContent = `${total} of ${total} fields`;
   }
@@ -324,13 +387,15 @@ const Demo = (() => {
     const rule = '-'.repeat(72);
     const L = [];
     L.push('OPTIMIZATION GALAXY, SPOKEN SCRIPT');
-    L.push('Eight beats. Each one holds for about thirty seconds while you talk.');
+    L.push('Eight beats, about eleven seconds each. The whole run is one minute twenty eight.');
+    L.push('The subtitle on screen is the short version. The lines below are what you say.');
     L.push('Pause stops the clock. Next moves on early. Nothing runs away from you.');
     L.push(rule);
     L.push('');
     L.push('BEFORE YOU RECORD');
     L.push('  node server.js, then open http://localhost:4610 full screen.');
     L.push('  Press Start model, then read beat 1. When the bar fills, it moves itself.');
+    L.push('  Subtitles burn in at the bottom, so the recording carries the story on its own.');
     L.push('');
     L.push(rule);
 
@@ -354,8 +419,9 @@ const Demo = (() => {
 
     BEATS.forEach((b, i) => {
       L.push('');
-      L.push(`BEAT ${i + 1}, ${b.title.toUpperCase()}   (about 30 seconds)`);
-      L.push('  On screen: ' + b.line);
+      L.push(`BEAT ${i + 1}, ${b.title.toUpperCase()}   (about 11 seconds)`);
+      L.push('  Subtitle: ' + b.caption);
+      if (b.point) L.push('  Pointer lands on: ' + b.point.label);
       L.push('  Say:');
       for (const line of wrapText(spoken[i], 76)) L.push('    ' + line);
     });

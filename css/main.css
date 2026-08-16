@@ -835,3 +835,80 @@ footer {
 @media (prefers-reduced-motion: reduce) { .mfield { animation: none; } }
 .mf-name { color: var(--text-muted); }
 .mf-value { color: var(--text-primary); font-variant-numeric: tabular-nums; text-align: right; }
+
+/* ---------- brand: this is ours, not a generic page ---------- */
+
+.nav-brand { gap: 10px; }
+.brand-house { color: var(--text-primary); }
+.brand-product {
+  color: var(--text-muted);
+  padding-left: 10px;
+  border-left: 1px solid var(--border-strong);
+}
+@media (max-width: 700px) { .brand-product { display: none; } }
+
+/* ---------- subtitles, cinema style ---------- */
+
+.caption-bar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 80;
+  padding: 28px var(--s-5) 34px;
+  display: flex; justify-content: center;
+  background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.86) 42%);
+  pointer-events: none;
+}
+.caption-line {
+  max-width: 60ch;
+  text-align: center;
+  font-size: clamp(18px, 2.1vw, 27px);
+  line-height: 1.35;
+  color: #ffffff;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.9);
+  letter-spacing: -0.005em;
+}
+
+/* ---------- pointer: lands on the value being spoken about ---------- */
+
+.pointer {
+  position: absolute;
+  z-index: 70;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.42);
+  pointer-events: none;
+  transition: top 260ms var(--ease-premium), left 260ms var(--ease-premium),
+              width 260ms var(--ease-premium), height 260ms var(--ease-premium);
+}
+@media (prefers-reduced-motion: reduce) { .pointer { transition: none; } }
+.pointer-label {
+  position: absolute;
+  top: -13px; left: -1px;
+  transform: translateY(-100%);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 5px 10px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+/* ---------- presenting: product surface only ---------- */
+
+body.presenting .hero-compact,
+body.presenting .cycle-jobs,
+body.presenting .demo-bar,
+body.presenting #model,
+body.presenting #references,
+body.presenting footer,
+body.presenting .nav-links,
+body.presenting #analyzer .section-head,
+body.presenting #results .section-head,
+body.presenting .docs-strip .sim-note,
+body.presenting .beat-line { display: none; }
+
+body.presenting #cycle { padding-top: var(--s-7); }
+body.presenting section { padding: var(--s-5) 0; }
+body.presenting { padding-bottom: 120px; }
+body.presenting .demo-panel { position: sticky; top: 78px; z-index: 40; }
