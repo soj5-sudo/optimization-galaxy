@@ -308,8 +308,8 @@
     renderCompliance, renderQuote, renderCutting, renderPassport,
   };
 
-  // build the demo step list
-  Demo.STEPS.forEach((s, i) => {
+  // build the beat list
+  Demo.BEATS.forEach((s, i) => {
     const d = document.createElement('div');
     d.className = 'demo-step';
     d.dataset.step = s.key;
@@ -323,8 +323,11 @@
     Demo.run(app, cycleUI);
   });
 
+  $('pause-btn').addEventListener('click', () => Demo.pause());
+  $('next-btn').addEventListener('click', () => Demo.next());
+
   els.scriptBtn.addEventListener('click', () => {
-    Agents.download('demo-video-script.txt', Demo.scriptText(app));
+    Agents.download('spoken-script.txt', Demo.scriptText(app));
   });
 
   els.dlCutting.addEventListener('click', () => {

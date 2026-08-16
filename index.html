@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
@@ -16,8 +16,8 @@
 <nav class="nav" id="nav" aria-label="Main">
   <a class="nav-brand" href="#top">
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 2L20 9L12 22L4 9L12 2Z" stroke="#7FA8C9" stroke-width="1.3" fill="rgba(127,168,201,0.12)"/>
-      <path d="M4 9H20M12 2L8.5 9L12 22M12 2L15.5 9L12 22" stroke="#7FA8C9" stroke-width="0.7"/>
+      <path d="M12 2L20 9L12 22L4 9L12 2Z" stroke="#c4c6ca" stroke-width="1.3" fill="rgba(196,198,202,0.12)"/>
+      <path d="M4 9H20M12 2L8.5 9L12 22M12 2L15.5 9L12 22" stroke="#c4c6ca" stroke-width="0.7"/>
     </svg>
     Optimization Galaxy
   </a>
@@ -30,7 +30,7 @@
   <div class="nav-actions">
     <span class="participants" id="participants" hidden></span>
     <button class="btn btn-ghost btn-small" id="share-btn">Share session</button>
-    <button class="btn btn-primary btn-small" id="demo-btn">Start demo</button>
+    <button class="btn btn-primary btn-small" id="demo-btn">Start model</button>
   </div>
 </nav>
 
@@ -55,61 +55,88 @@
 <section id="cycle">
   <div class="wrap">
     <div class="section-head">
-      <p class="label">00, The cycle</p>
-      <h2 class="section-title">Three jobs. One record per stone.</h2>
-      <p class="lede">Compliance proves the stone is not from a sanctioned source and files the statement customs
-        demands. Quoting prices it off live market data, expected yield, and the duty its polishing country sets.
-        Rough cut optimization maps the plan that decides how much of it survives. Ten people build that passport
-        by hand in seven to nine days. This builds it in minutes, off one record, and every field carries the
-        document it came from.</p>
+      <p class="label">00, The desk</p>
+      <h2 class="section-title">Three agents run the desk.<br>One record per stone.</h2>
+      <p class="lede">Compliance, quoting and cut planning handle the daily operations, and all three read and write
+        the same record. That is the point: the price cannot disagree with the filing, and the filing cannot
+        disagree with the lab report, because there is only one set of facts. Ten people build this passport by
+        hand over seven to nine days. Here it takes minutes.</p>
     </div>
 
     <div class="cycle-jobs">
       <article class="job">
-        <p class="label">Compliance</p>
-        <h3>Proves origin, files the DDS</h3>
-        <p>Pulls each field from the mining certificate, the lab report and the invoice, checks all three against
-          each other, and blocks on a mismatch. Since 1 January 2026 every natural polished diamond of 0.5 ct or
-          more entering the EU carries this filing.</p>
-        <p class="job-stake">Wrong origin field: up to 40% of shipment value plus seizure. Sanctioned stone:
-          $377,700 per violation or twice the transaction value, whichever is greater.</p>
+        <p class="label">Compliance agent</p>
+        <h3>Origin proved, statement filed</h3>
+        <p>Reads the mining certificate, the lab report and the invoice out of the inbox, checks every field against
+          the other two, and generates the G7 Due Diligence Statement with the audit trail behind it. A mismatch
+          stops the filing on our side.</p>
+        <p class="job-stake">Required since January 2026 on every natural polished stone at or above 0.5 ct. A wrong
+          origin field costs up to 40% of the shipment plus seizure. A sanctioned stone, $377,700 per violation or
+          twice the transaction value.</p>
       </article>
       <article class="job">
-        <p class="label">Quoting</p>
-        <h3>Prices rough and polished</h3>
-        <p>Live market basis against expected yield. Where a stone was polished now decides its US import tax, so a
-          price cannot be right without the compliance data. Same record, so it always is.</p>
-        <p class="job-stake">A price that disagrees with the filing is a price that cannot ship.</p>
+        <p class="label">Quoting agent</p>
+        <h3>Priced off the same record</h3>
+        <p>Prices rough and polished against the market and the expected yield, then applies the duty the country of
+          polish sets. That field comes from the record compliance already proved, so the quote and the filing
+          always agree.</p>
+        <p class="job-stake">A price that contradicts the filing is a price that cannot ship.</p>
       </article>
       <article class="job">
-        <p class="label">Rough cut optimization</p>
-        <h3>Maps the plan</h3>
-        <p>Segments the scanned rough, maps every internal feature, and searches the placement space for the
-          highest value recovery under the inclusion constraints.</p>
-        <p class="job-stake">Only 40 to 42 of every 100 rough carats survive as polished, so the plan quietly
-          decides about 5% of a factory's production.</p>
+        <p class="label">Cut planning agent</p>
+        <h3>Scans the rough, returns the plan</h3>
+        <p>Scans the rough, maps the inclusions, runs the cut options, and returns the plan that yields the most,
+          then hands it to the floor and takes the finished report back.</p>
+        <p class="job-stake">Only 40 to 42 of every 100 rough carats survive as polished. The plan decides where in
+          that range you land, which is about 5% of a factory's production.</p>
       </article>
     </div>
 
     <div class="demo-bar">
       <div>
-        <p class="label">Run the whole cycle</p>
-        <p class="demo-sub">One click: opens a shared session, brings the cutting floor and compliance into it,
-          plans the cut, takes the cutting report back, files the statement, prices the stone, then blocks one
-          that should never ship.</p>
+        <p class="label">Run the desk</p>
+        <p class="demo-sub">Press Start model. It walks the whole cycle on its own, holding about half a minute on
+          each step so there is room to talk over it. Pause stops the clock, Next moves on early.</p>
       </div>
       <div class="demo-bar-actions">
-        <button class="btn btn-ghost btn-small" id="script-btn">Recording script</button>
+        <button class="btn btn-ghost btn-small" id="script-btn">Spoken script</button>
       </div>
     </div>
 
     <div class="demo-panel" id="demo-panel" hidden>
-      <div class="demo-steps" id="demo-steps"></div>
-      <p class="demo-narration" id="demo-narration">Press Start demo.</p>
-      <div class="demo-link-row" hidden>
-        <span class="label">Session link</span>
-        <code id="demo-link"></code>
+      <div class="beat">
+        <span class="beat-index num" id="beat-index">01 of 08</span>
+        <h3 class="beat-title" id="beat-title">Ready</h3>
+        <p class="beat-line" id="beat-line">Press Start model.</p>
+        <div class="beat-holdbar"><i id="beat-hold"></i></div>
       </div>
+      <div class="demo-steps" id="demo-steps"></div>
+      <div class="demo-foot">
+        <div class="demo-link-row" hidden>
+          <span class="label">Session link</span>
+          <code id="demo-link"></code>
+        </div>
+        <div class="demo-controls" id="demo-controls" hidden>
+          <button class="btn btn-ghost btn-small" id="pause-btn">Pause</button>
+          <button class="btn btn-ghost btn-small" id="next-btn">Next</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="desk-panel" id="desk-panel">
+      <p class="label">The desk</p>
+      <div class="desk-list" id="desk-list"></div>
+    </div>
+
+    <div class="inbox-panel" id="inbox-panel" hidden>
+      <div class="inbox-head">
+        <div>
+          <p class="label">Source documents, straight from the inbox</p>
+          <p class="inbox-sub">Gmail and IMAP ingestion, field extraction, nothing typed by hand.</p>
+        </div>
+        <span class="inbox-count num" id="inbox-count">0 fields</span>
+      </div>
+      <div class="inbox-list" id="inbox-list"></div>
     </div>
 
     <div class="cycle-grid">
@@ -407,6 +434,7 @@
 <script src="js/modelcard.js"></script>
 <script src="js/session.js"></script>
 <script src="js/records.js"></script>
+<script src="js/inbox.js"></script>
 <script src="js/agents.js"></script>
 <script src="js/demo.js"></script>
 <script src="js/main.js"></script>

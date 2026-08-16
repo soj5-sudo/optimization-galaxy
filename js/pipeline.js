@@ -61,15 +61,15 @@ const Pipeline = (() => {
     const c = thumbOf(an.canvas, size);
     const ctx = c.getContext('2d');
     const s = c.width / an.W;
-    ctx.fillStyle = 'rgba(6,9,13,0.55)';
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
     ctx.fillRect(0, 0, c.width, c.height);
-    ctx.fillStyle = 'rgba(217,106,118,0.95)';
+    ctx.fillStyle = 'rgba(224,85,95,0.95)';
     for (let y = 0; y < an.H; y += 2) {
       for (let x = 0; x < an.W; x += 2) {
         if (an.maps.incMask[y * an.W + x]) ctx.fillRect(x * s, y * s, 2 * s, 2 * s);
       }
     }
-    ctx.strokeStyle = 'rgba(168,204,232,0.9)';
+    ctx.strokeStyle = 'rgba(233,236,242,0.85)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     an.contour.forEach(([x, y], i) => i ? ctx.lineTo(x * s, y * s) : ctx.moveTo(x * s, y * s));
@@ -82,9 +82,9 @@ const Pipeline = (() => {
     const c = thumbOf(an.canvas, size);
     const ctx = c.getContext('2d');
     const s = c.width / an.W;
-    ctx.fillStyle = 'rgba(6,9,13,0.35)';
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.fillRect(0, 0, c.width, c.height);
-    const colors = ['rgba(91,141,239,0.65)', 'rgba(217,106,118,0.6)', 'rgba(134,199,180,0.6)'];
+    const colors = ['rgba(233,236,242,0.6)', 'rgba(196,198,202,0.5)', 'rgba(130,134,142,0.45)'];
     (result.stones || []).forEach((st, i) => {
       ctx.fillStyle = colors[i % colors.length];
       ctx.beginPath();

@@ -579,9 +579,9 @@ const CV = (() => {
           im.data[o + 1] = Math.round(28 + 60 * v);
           im.data[o + 2] = Math.round(52 + 40 * (1 - v));
         } else if (mode === 'ice') {
-          im.data[o] = Math.round(10 + 117 * v);
-          im.data[o + 1] = Math.round(14 + 154 * v);
-          im.data[o + 2] = Math.round(22 + 179 * v);
+          im.data[o] = Math.round(8 + 188 * v);
+          im.data[o + 1] = Math.round(9 + 190 * v);
+          im.data[o + 2] = Math.round(11 + 194 * v);
         } else {
           const g = Math.round(12 + 220 * v);
           im.data[o] = g; im.data[o + 1] = g; im.data[o + 2] = g;

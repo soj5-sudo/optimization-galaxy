@@ -43,10 +43,10 @@ const ModelCard = (() => {
     ctx.clearRect(0, 0, cssW, cssH);
 
     // gridlines
-    ctx.strokeStyle = 'rgba(232,238,244,0.07)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.07)';
     ctx.lineWidth = 1;
     ctx.font = '10px Inter, sans-serif';
-    ctx.fillStyle = '#8CA0B3';
+    ctx.fillStyle = '#82868e';
     for (let i = 0; i <= 4; i++) {
       const y = padT + h * i / 4;
       ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + w, y); ctx.stroke();
@@ -71,21 +71,21 @@ const ModelCard = (() => {
       ctx.stroke();
       ctx.setLineDash([]);
     };
-    plot(trainLoss, v => 1 - v / 0.7, 'rgba(140,160,179,0.9)');
-    plot(valLoss, v => 1 - v / 0.7, 'rgba(217,106,118,0.85)', [5, 4]);
-    plot(valIoU, v => 1 - (v - 0.5) / 0.5, '#7FA8C9');
+    plot(trainLoss, v => 1 - v / 0.7, 'rgba(130,134,142,0.95)');
+    plot(valLoss, v => 1 - v / 0.7, 'rgba(224,85,95,0.85)', [5, 4]);
+    plot(valIoU, v => 1 - (v - 0.5) / 0.5, '#c4c6ca');
 
     // legend
     const legend = [
-      ['train loss', 'rgba(140,160,179,0.9)'],
-      ['val loss', 'rgba(217,106,118,0.85)'],
-      ['val IoU', '#7FA8C9'],
+      ['train loss', 'rgba(130,134,142,0.95)'],
+      ['val loss', 'rgba(224,85,95,0.85)'],
+      ['val IoU', '#c4c6ca'],
     ];
     let lx = padL + 8;
     for (const [name, color] of legend) {
       ctx.fillStyle = color;
       ctx.fillRect(lx, padT + 4, 14, 2);
-      ctx.fillStyle = '#8CA0B3';
+      ctx.fillStyle = '#82868e';
       ctx.fillText(name, lx + 18, padT + 8);
       lx += 18 + ctx.measureText(name).width + 20;
     }

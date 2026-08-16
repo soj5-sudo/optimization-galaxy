@@ -4,10 +4,12 @@
 
 const Report = (() => {
 
+  // neutral, per his palette. Stones are told apart by outline weight and label,
+  // not by hue, so colour stays reserved for status truth.
   const STONE_COLORS = [
-    { fill: 'rgba(91,141,239,0.42)', line: '#5B8DEF' },
-    { fill: 'rgba(217,106,118,0.38)', line: '#D96A76' },
-    { fill: 'rgba(134,199,180,0.38)', line: '#86C7B4' },
+    { fill: 'rgba(233,236,242,0.34)', line: '#e9ecf2' },
+    { fill: 'rgba(196,198,202,0.24)', line: '#c4c6ca' },
+    { fill: 'rgba(130,134,142,0.22)', line: '#82868e' },
   ];
 
   function fitCanvas(canvas, an) {
@@ -21,11 +23,11 @@ const Report = (() => {
   function drawBase(ctx, an, s, dim) {
     ctx.drawImage(an.canvas, 0, 0, an.W * s, an.H * s);
     if (dim) {
-      ctx.fillStyle = `rgba(6,9,13,${dim})`;
+      ctx.fillStyle = `rgba(0,0,0,${dim})`;
       ctx.fillRect(0, 0, an.W * s, an.H * s);
     }
     // stone contour
-    ctx.strokeStyle = 'rgba(168,204,232,0.85)';
+    ctx.strokeStyle = 'rgba(233,236,242,0.8)';
     ctx.lineWidth = 1.4;
     ctx.beginPath();
     an.contour.forEach(([x, y], i) => i ? ctx.lineTo(x * s, y * s) : ctx.moveTo(x * s, y * s));
@@ -40,7 +42,7 @@ const Report = (() => {
     // detected inclusions: outline circles sized to the components
     for (const inc of an.inclusions) {
       const r = Math.max(2.5, inc.radius * s);
-      ctx.strokeStyle = inc.type === 'carbon' ? 'rgba(232,238,244,0.75)' : 'rgba(120,220,150,0.9)';
+      ctx.strokeStyle = inc.type === 'carbon' ? 'rgba(255,255,255,0.7)' : 'rgba(78,192,141,0.9)';
       ctx.lineWidth = 1.2;
       ctx.beginPath();
       ctx.arc(inc.cx * s, inc.cy * s, r, 0, Math.PI * 2);
@@ -74,13 +76,14 @@ const Report = (() => {
       ctx.moveTo(p[1][0] * s, p[1][1] * s); ctx.lineTo(p[4][0] * s, p[4][1] * s);
       ctx.stroke();
       // label
-      ctx.fillStyle = '#E8EEF4';
+      ctx.fillStyle = '#000000';
       ctx.font = '600 12px Inter, sans-serif';
+      ctx.strokeStyle = 'rgba(0,0,0,0.5)';
       ctx.fillText(`${st.id}  ${st.carat.toFixed(2)} ct`, st.cx * s - 18, st.cy * s + 4);
     });
     // saw line
     if (result.saw) {
-      ctx.strokeStyle = 'rgba(228,200,110,0.9)';
+      ctx.strokeStyle = 'rgba(233,236,242,0.85)';
       ctx.setLineDash([6, 5]);
       ctx.lineWidth = 1.2;
       ctx.beginPath();
