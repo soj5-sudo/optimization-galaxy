@@ -23,87 +23,96 @@ const Demo = (() => {
     {
       key: 'film',
       title: 'The scan is taken',
+      stage: null,
       cards: [
-        'This is our factory floor.',
-        'The machine X-rays the rough stone and maps every flaw inside it.',
+        "This machine takes an X-ray of a rough diamond.",
+        "It shows every crack and speck hidden inside the stone.",
       ],
-      point: null,
     },
     {
-      key: 'load',
-      title: 'Loaded into the computer',
+      key: 'rough',
+      title: 'The rough, as scanned',
+      stage: '#scan-stage',
       cards: [
-        'That same scan goes straight into the computer.',
-        'It reads the stone, the outline, and where the flaws sit.',
+        "This is that X-ray.",
+        "Grey is the diamond. The coloured marks are the flaws inside it.",
       ],
-      point: { sel: '#pipeline-strip', label: 'What the computer sees' },
+    },
+    {
+      key: 'read',
+      title: 'The computer reads it',
+      stage: '#analyzer',
+      cards: [
+        "The computer looks at the same picture.",
+        "It finds the edge of the stone and marks every flaw.",
+      ],
     },
     {
       key: 'plan',
       title: 'Planning the cut',
+      stage: '#results',
       cards: [
-        'Planning the cut means fitting polished stones inside the rough.',
-        'Around the flaws, never through them. Bigger and cleaner is worth more.',
-        'Only forty carats in every hundred survive the cut.',
+        "Now it works out how to cut it.",
+        "It fits finished diamonds inside, going around the flaws, not through them.",
+        "Out of 100 carats of rough, only about 40 come out as finished stones.",
       ],
-      point: { sel: '#stat-row .stat:nth-child(4)', label: 'What survives the cut' },
     },
     {
       key: 'cut',
       title: 'The floor cuts it',
+      stage: '.agent-desk',
       cards: [
-        'The factory cuts to that plan.',
-        'What actually came off the wheel is recorded next to what was planned.',
+        "The factory cuts the stone to that plan.",
+        "What really came out is written next to what we expected.",
       ],
-      point: { sel: '#body-planning .plan-table', label: 'Planned against actual' },
     },
     {
       key: 'inbox',
       title: 'The paperwork arrives',
+      stage: '#inbox-panel',
       cards: [
-        'The papers arrive the way they really do.',
-        'Email, WhatsApp, Telegram. Mine certificate, lab report, invoice.',
-        'The software reads them and takes every field out. Nothing is typed.',
+        "The papers turn up on email, WhatsApp and Telegram.",
+        "Where it was mined. What the lab measured. Who bought it.",
+        "The software reads them. Nobody types anything in.",
       ],
-      point: { sel: '#inbox-count', label: 'Read, not typed' },
     },
     {
       key: 'compliance',
       title: 'Proving where it came from',
+      stage: '.agent-desk',
       cards: [
-        'Now the hard part: proving where the stone came from.',
-        'Every field is checked against the other two documents.',
-        'They agree, so the statement customs asks for is filed.',
+        "Every diamond needs proof of where it came from.",
+        "The software checks all three papers say the same thing.",
+        "They match, so the legal form is filled in and filed.",
       ],
-      point: { sel: '#body-compliance .verdict', label: 'Filed' },
     },
     {
       key: 'quote',
       title: 'What it is worth',
+      stage: '.agent-desk',
       cards: [
-        'Rapaport is the price list the whole trade works off.',
-        'Nobody pays list. Take off the discount, the duty and the cutting cost,',
-        'and that is the most I can pay for the rough.',
+        "There is one price list the whole diamond trade uses.",
+        "Nobody pays full price. Take off the discount, the tax, the cutting cost.",
+        "What is left is the most we can pay for the rough stone.",
       ],
-      point: { sel: '#body-quoting .kv div:last-child', label: 'The most I can pay' },
     },
     {
       key: 'blocked',
       title: 'The one we stop',
+      stage: '#blocked-card',
       cards: [
-        'A second stone. The invoice says Botswana.',
-        'The mine certificate says Russia. It stops at our desk, not the border.',
+        "Another stone. The bill says it came from Botswana.",
+        "The mine paper says Russia, which is banned. We stop it here.",
       ],
-      point: { sel: '#body-blocked .verdict', label: 'Stopped here' },
     },
     {
       key: 'passport',
       title: 'One record per stone',
+      stage: '#passport',
       cards: [
-        'One record per stone, from the rough to the sale.',
-        'Every number on it showing the document it came from.',
+        "One page per stone, from rough stone to sale.",
+        "Every number showing which paper it came from.",
       ],
-      point: { sel: '#passport-table', label: 'Every number, its source' },
     },
   ];
 
@@ -157,47 +166,44 @@ const Demo = (() => {
     if (bar) bar.hidden = true;
   }
 
-  // ---------- pointer ----------
-  // parks a marker on the exact value being talked about
+  // ---------- the stage ----------
+  // One panel on screen at a time, held in a fixed frame. The page never
+  // scrolls during a run, so nothing can drift out of place.
 
-  function point(target) {
-    const marker = document.getElementById('pointer');
-    const label = document.getElementById('pointer-label');
-    if (!marker || !target) return;
-    const el = document.querySelector(target.sel);
-    if (!el) { hidePoint(); return; }
-    const r = el.getBoundingClientRect();
-    if (r.width === 0 && r.height === 0) { hidePoint(); return; }
-    const pad = 8;
-    marker.hidden = false;
-    marker.style.top = `${r.top + window.scrollY - pad}px`;
-    marker.style.left = `${r.left + window.scrollX - pad}px`;
-    marker.style.width = `${r.width + pad * 2}px`;
-    marker.style.height = `${r.height + pad * 2}px`;
-    label.textContent = target.label || '';
-    label.hidden = !target.label;
+  let staged = null, slot = null;
+
+  function showStage(sel) {
+    const frame = document.getElementById('stage');
+    if (!frame) return;
+    if (staged && slot && slot.parentNode) {
+      slot.parentNode.replaceChild(staged, slot);   // put the previous panel back
+    }
+    staged = null; slot = null;
+    const el = sel ? document.querySelector(sel) : null;
+    if (!el) return;
+    slot = document.createComment('staged');
+    el.parentNode.replaceChild(slot, el);
+    frame.appendChild(el);
+    staged = el;
+    // canvases size themselves off their container, so let them re-fit
+    window.dispatchEvent(new Event('resize'));
   }
 
-  function hidePoint() {
-    const marker = document.getElementById('pointer');
-    if (marker) marker.hidden = true;
-  }
+  function clearStage() { showStage(null); }
 
-  function repoint() {
-    const b = BEATS[state.beat];
-    if (state.running && b && b.point) point(b.point);
+  // the header height changes with the title, so the stage is placed from a
+  // measurement rather than a fixed guess
+  function fitStage() {
+    const panel = document.getElementById('demo-panel');
+    if (!panel || panel.hidden) return;
+    const bottom = panel.getBoundingClientRect().bottom;
+    document.documentElement.style.setProperty('--stage-top', `${Math.round(bottom + 24)}px`);
   }
-  window.addEventListener('scroll', () => { if (state.running) repoint(); }, { passive: true });
-  window.addEventListener('resize', () => { if (state.running) repoint(); });
+  window.addEventListener('resize', () => { if (state.running) fitStage(); });
 
   function setHold(frac) {
     const bar = document.getElementById('beat-hold');
     if (bar) bar.style.width = `${Math.min(100, Math.max(0, frac * 100))}%`;
-  }
-
-  function focus(sel, block) {
-    const el = document.querySelector(sel);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: block || 'center' });
   }
 
   // hold on the current beat until its half minute is up, unless skipped.
@@ -222,12 +228,12 @@ const Demo = (() => {
     state.beat = i;
     const b = BEATS[i];
     setStep(b.key, 'active');
-    hidePoint();
     showBeat(i);
+    fitStage();
+    if (b.stage !== undefined) showStage(b.stage);
     setHold(0);
     const t0 = performance.now();
     await work();
-    if (b.point) { await wait(120); point(b.point); }
     await hold(t0, b.cards);
     setStep(b.key, 'done');
   }
@@ -344,8 +350,6 @@ const Demo = (() => {
 
     try {
       // 0. the film: how the scan is taken
-      await openSession(ui);
-
       await runBeat(0, async () => {
         await playFilm(ui);
         const roughBtn = document.querySelector('#samples button[data-src*="rough-327"]');
@@ -360,10 +364,12 @@ const Demo = (() => {
       });
       app.record = record;
 
-      // 1. loaded into the computer, and the model runs
-      await runBeat(1, async () => {
+      // 1. the rough itself, big enough to look at
+      await runBeat(1, async () => {});
+
+      // 2. the computer reads it
+      await runBeat(2, async () => {
         ui.working('planning', 'Reading the scan');
-        focus('.console-grid', 'start');
         await wait(400);
         await app.run(false, { noScroll: true });
         if (!app.record || !app.record.plan) {
@@ -372,48 +378,40 @@ const Demo = (() => {
         }
       });
 
-      // 2. the plan itself
-      await runBeat(2, async () => {
-        focus('.ba-grid', 'center');
-      });
+      // 3. the plan
+      await runBeat(3, async () => {});
 
-      // 3. the floor
-      await runBeat(3, async () => {
-        focus('.agent-desk', 'start');
+      // 4. the floor
+      await runBeat(4, async () => {
         ui.working('planning', 'On the wheel');
         await wait(400);
         await Agents.cutting(record, ui);
         ui.renderCutting(record);
       });
 
-      // 4. the paperwork, however it arrives
-      await runBeat(4, async () => {
+      // 5. the paperwork, however it arrives
+      await runBeat(5, async () => {
         document.getElementById('inbox-panel').hidden = false;
-        focus('#inbox-panel', 'start');
         await ingest(app.imageDocKey || 'IGI-7996745173', ui);
       });
 
-      // 5. proving the origin
-      await runBeat(5, async () => {
-        focus('.agent-desk', 'start');
+      // 6. proving the origin
+      await runBeat(6, async () => {
         ui.working('compliance', 'Checking');
         await Agents.compliance(record, ui);
         ui.renderCompliance(record);
       });
 
-      // 6. what it is worth
-      await runBeat(6, async () => {
-        focus('.agent-desk', 'start');
+      // 7. what it is worth
+      await runBeat(7, async () => {
         ui.working('quoting', 'Pricing');
         await Agents.quoting(record, ui);
         ui.renderQuote(record);
       });
 
-      // 7. the one we stop
-      await runBeat(7, async () => {
+      // 8. the one we stop
+      await runBeat(8, async () => {
         ui.log('SESSION', 'Second stone on the same order, a 1.00 ct');
-        document.getElementById('inbox-panel').hidden = false;
-        await ingest('GIA-7373304073', ui, true);
         const bad = Records.create({
           scanName: 'GIA 7373304073',
           scanSource: 'lab report',
@@ -421,17 +419,16 @@ const Demo = (() => {
         });
         app.badRecord = bad;
         document.getElementById('blocked-card').hidden = false;
-        focus('#blocked-card', 'center');
+        showStage('#blocked-card');
         await Agents.compliance(bad, ui);
         ui.renderCompliance(bad, true);
         await Agents.quoting(bad, ui);
       });
 
-      // 8. the passport
-      await runBeat(8, async () => {
+      // 9. the passport
+      await runBeat(9, async () => {
         ui.renderPassport(record);
-        await wait(300);
-        focus('#passport', 'center');
+        showStage('#passport');
         ui.log('RECORD', `Record ${record.id} complete, ${record.audit.length} steps, all on one sheet`);
       });
 
@@ -517,15 +514,16 @@ const Demo = (() => {
     L.push(rule);
 
     const spoken = [
-      "That is our factory. The machine takes an X-ray of the rough stone and maps every flaw inside it, before anyone cuts anything.",
-      "That same scan goes straight into the computer. It finds the stone, traces the outline, and marks where the flaws sit inside it.",
-      "Planning the cut means fitting polished stones inside the rough, around the flaws. Only about forty carats in every hundred survive.",
-      "The factory cuts to the plan, and what actually came off the wheel is written back next to what we planned. Nothing is re-keyed.",
-      "The papers arrive the way they really do, on email, WhatsApp and Telegram. The software reads them and takes every field out.",
-      "Now the hard part. Where the stone came from, checked against all three documents, then the statement customs asks for is filed.",
-      "Rapaport is the price list the trade works off. Nobody pays list. Take off the discount, the duty and the cutting cost, and that is my ceiling.",
-      "A second stone. The invoice says Botswana, the mine certificate says Russia. It stops at our desk. At the border it costs forty percent and the goods.",
-      "One record per stone, from the rough to the sale, every number showing the document it came from. Ten people do this by hand in nine days.",
+      "That is our factory. This machine takes an X-ray of a rough diamond and shows every crack and speck hidden inside it.",
+      "This is that X-ray. The grey part is the diamond itself, and the coloured marks are the flaws trapped inside it.",
+      "The computer looks at the same picture, finds the edge of the stone, and marks every flaw it can see inside.",
+      "Now it works out how to cut it, fitting finished diamonds inside the rough and going around the flaws. Out of a hundred carats, only about forty survive.",
+      "The factory cuts the stone to that plan, and what really came out is written down next to what we expected.",
+      "The papers turn up on email, WhatsApp and Telegram. Where it was mined, what the lab measured, who bought it. The software reads them all.",
+      "Every diamond needs proof of where it came from. The software checks all three papers say the same thing, then fills in the legal form and files it.",
+      "There is one price list the whole trade uses. Nobody pays full price. Take off the discount, the tax and the cutting cost, and that is our limit.",
+      "Another stone. The bill says Botswana, the mine paper says Russia, which is banned. We stop it here, before it ever ships.",
+      "One page per stone, from rough stone to sale, and every number shows which paper it came from. Ten people do this by hand in nine days.",
     ];
 
     BEATS.forEach((b, i) => {

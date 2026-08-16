@@ -665,7 +665,8 @@ footer {
 
 .chk-list { list-style: none; display: grid; gap: 8px; }
 .chk { display: grid; grid-template-columns: 52px 1fr; gap: 10px; font-size: 13px; color: var(--text-secondary); }
-.chk strong { color: var(--text-primary); font-weight: 500; }
+.chk strong { color: var(--text-primary); font-weight: 500; display: block; }
+.chk-detail { display: block; }
 .chk-mark { font-size: 10px; letter-spacing: 0.10em; text-transform: uppercase; padding-top: 2px; }
 .chk.ok .chk-mark { color: var(--plan); }
 .chk.bad .chk-mark { color: var(--flaw); }
@@ -884,50 +885,88 @@ footer {
   letter-spacing: -0.005em;
 }
 
-/* ---------- pointer: lands on the value being spoken about ---------- */
+/* ---------- presenting: one panel, fixed, nothing scrolls ---------- */
 
-.pointer {
-  position: absolute;
-  z-index: 70;
-  border: 1px solid var(--accent);
-  border-radius: 6px;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.42);
-  pointer-events: none;
-  transition: top 260ms var(--ease-premium), left 260ms var(--ease-premium),
-              width 260ms var(--ease-premium), height 260ms var(--ease-premium);
-}
-@media (prefers-reduced-motion: reduce) { .pointer { transition: none; } }
-.pointer-label {
-  position: absolute;
-  top: -13px; left: -1px;
-  transform: translateY(-100%);
-  background: var(--accent);
-  color: var(--on-accent);
-  font-size: 11px; font-weight: 600;
-  letter-spacing: 0.08em; text-transform: uppercase;
-  padding: 5px 10px;
-  border-radius: 3px;
-  white-space: nowrap;
-}
-
-/* ---------- presenting: product surface only ---------- */
-
+body.presenting { overflow: hidden; height: 100vh; }
 body.presenting .hero-compact,
 body.presenting .cycle-jobs,
 body.presenting .demo-bar,
+body.presenting .section-head,
+body.presenting .desk-panel,
+body.presenting .cycle-grid,
+body.presenting .scan-stage,
+body.presenting #inbox-panel,
+body.presenting .agent-desk,
+body.presenting #analyzer,
+body.presenting #results,
 body.presenting #model,
 body.presenting #references,
 body.presenting footer,
 body.presenting .nav-links,
-body.presenting #analyzer .section-head,
-body.presenting #results .section-head,
-body.presenting .docs-strip .sim-note,
-body.presenting .beat-line { display: none; }
+body.presenting .beat-line,
+body.presenting .demo-steps,
+body.presenting .demo-link-row,
+body.presenting #stage .intake,
+body.presenting #stage .console-toolbar,
+body.presenting #stage .chk.ok .chk-detail { display: none; }
+body.presenting #stage .chk-list { gap: 6px; }
 
-body.presenting #cycle { padding-top: var(--s-7); }
-body.presenting section { padding: var(--s-5) 0; }
-body.presenting { padding-bottom: 120px; }
-body.presenting .demo-panel { position: sticky; top: 78px; z-index: 40; }
+body.presenting .demo-panel {
+  position: fixed;
+  top: 64px; left: 0; right: 0;
+  z-index: 45;
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--border-hairline);
+  border-radius: 0;
+  background: var(--bg);
+  padding: 16px var(--s-5) 14px;
+}
+
+/* the stage: whatever panel the current beat is about, centred and still */
+.stage { display: none; }
+body.presenting #stage {
+  display: flex;
+  position: fixed;
+  top: var(--stage-top, 168px); bottom: 150px; left: 0; right: 0;
+  z-index: 30;
+  padding: 0 var(--s-5);
+  align-items: center;
+  justify-content: center;
+}
+body.presenting #stage > * {
+  display: block;
+  width: min(1180px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  margin: 0;
+}
+body.presenting #stage > section { padding: 0; }
+body.presenting #stage .wrap { padding: 0; max-width: none; }
+body.presenting #stage .console-grid { grid-template-columns: 1fr; min-height: 0; }
+body.presenting #stage .inference { border: 0; }
+body.presenting #stage .agent-desk,
+body.presenting #stage #inbox-panel,
+body.presenting #stage .scan-stage { margin-bottom: 0; }
+
+/* the rough, shown large */
+.scan-stage {
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+  padding: var(--s-4);
+  display: grid;
+  gap: var(--s-3);
+  justify-items: center;
+  margin-bottom: var(--s-4);
+}
+.scan-stage img {
+  max-height: min(40vh, 356px);
+  width: auto;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--r-soft);
+}
+.scan-note { font-size: 13px; color: var(--text-secondary); text-align: center; max-width: 60ch; }
 
 /* ---------- the film: how the X-ray is taken ---------- */
 

@@ -124,6 +124,11 @@
       </div>
     </div>
 
+    <div class="scan-stage" id="scan-stage">
+      <img src="assets/samples/rough-327.png" alt="Galaxy scan of rough stone 327.8">
+      <p class="scan-note">Stone 327.8, straight off the machine. The grey is the diamond, the coloured marks are the flaws inside it.</p>
+    </div>
+
     <div class="desk-panel" id="desk-panel">
       <p class="label">The desk</p>
       <div class="desk-list" id="desk-list"></div>
@@ -132,8 +137,8 @@
     <div class="inbox-panel" id="inbox-panel" hidden>
       <div class="inbox-head">
         <div>
-          <p class="label">The paperwork, however it arrives</p>
-          <p class="inbox-sub">Email, WhatsApp and Telegram, all read into the same record. Nothing is typed by hand.</p>
+          <p class="label">The papers, however they turn up</p>
+          <p class="inbox-sub">Papers turn up on email, WhatsApp and Telegram. The software reads them all. Nothing is typed in.</p>
         </div>
         <span class="inbox-count num" id="inbox-count">0 fields</span>
       </div>
@@ -142,8 +147,8 @@
 
     <div class="agent-desk">
       <div class="agent-desk-head">
-        <p class="label">The three agents, working the same record</p>
-        <span class="agent-desk-note">One plans the cut, one proves where the stone came from, one prices it. All three read the same record.</span>
+        <p class="label">Three helpers, one page per stone</p>
+        <span class="agent-desk-note">One works out the cut. One proves where the stone came from. One works out the price. All three read the same page.</span>
       </div>
       <div class="agent-cards" id="agent-cards">
         <article class="agent-card" data-agent="planning">
@@ -431,9 +436,7 @@
   <p class="film-tag">Galaxy scan, factory floor</p>
 </div>
 
-<div class="pointer" id="pointer" hidden aria-hidden="true">
-  <span class="pointer-label" id="pointer-label"></span>
-</div>
+<div class="stage" id="stage" aria-live="polite"></div>
 
 <div class="caption-bar" id="caption-bar" hidden>
   <p class="caption-line" id="caption-line"></p>

@@ -255,7 +255,7 @@
     const passed = c.status === 'filed';
     const rows = c.checks.map(ck =>
       `<li class="chk ${ck.ok ? 'ok' : 'bad'}"><span class="chk-mark">${ck.ok ? 'Pass' : 'Block'}</span>
-        <span><strong>${ck.name}</strong><br>${ck.detail.replace(/<[^>]+>/g, '')}</span></li>`).join('');
+        <span><strong>${ck.name}</strong><span class="chk-detail">${ck.detail.replace(/<[^>]+>/g, '')}</span></span></li>`).join('');
     const verdict = `<p class="verdict ${passed ? 'ok' : 'bad'}">${passed
       ? `DDS filed, reference ${c.ddsRef}. Origin ${c.origin}.`
       : `Filing blocked. ${c.blockers.length} mismatch${c.blockers.length > 1 ? 'es' : ''} caught before the border.`}</p>`;

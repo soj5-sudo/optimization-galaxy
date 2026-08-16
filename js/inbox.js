@@ -115,9 +115,9 @@ const Inbox = (() => {
 
   const LABEL = { mining: 'Mining certificate', lab: 'Lab report', invoice: 'Invoice' };
   const MEANS = {
-    mining: 'Says which mine and country the rough came from',
-    lab: 'The stone\u2019s identity: carat, colour, clarity, graded by the lab',
-    invoice: 'The sale: who bought it, for how much, polished where',
+    mining: 'Says which mine and which country it came from',
+    lab: 'The lab measured it: size, colour, how clean it is',
+    invoice: 'The sale: who bought it, for how much, cut where',
   };
 
   function el(tag, cls, text) {
