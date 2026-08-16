@@ -182,8 +182,8 @@
         app.record.plan = result;
         Records.log(app.record, 'optimization', 'Cut plan produced',
           `${result.stones.length} stones, ${result.totalCarat.toFixed(2)} ct, ${result.yieldPct.toFixed(1)}% yield`);
-        cycleLog('PLANNER', `Plan written to record <span class="num">${app.record.id}</span>: ${result.stones.length} stones, <span class="num">${result.totalCarat.toFixed(2)} ct</span>, <span class="num">${result.yieldPct.toFixed(1)}%</span> yield`);
-        refreshAgentCards();
+        cycleLog('CUT PLANNING', `Plan written to record <span class="num">${app.record.id}</span>: ${result.stones.length} stones, <span class="num">${result.totalCarat.toFixed(2)} ct</span>, <span class="num">${result.yieldPct.toFixed(1)}%</span> yield`);
+        renderPlanCard(app.record);
 
         if (!fromRemote && !opts.noScroll) {
           requestAnimationFrame(() => els.results.scrollIntoView({ behavior: 'smooth', block: 'start' }));
@@ -222,14 +222,28 @@
     if (!el) return;
     el.textContent = text;
     el.dataset.tone = tone || 'idle';
+    const card = document.querySelector(`.agent-card[data-agent="${agent}"]`);
+    if (card) card.dataset.live = (tone === 'work') ? 'true' : 'false';
   }
 
-  function refreshAgentCards() {
-    const r = app.record;
-    if (r && r.plan && !r.cutting) {
-      $('body-cutting').innerHTML = `<p class="muted-line">Plan on record. ${r.plan.stones.length} stones, ${r.plan.totalCarat.toFixed(2)} ct queued for the floor.</p>`;
-      setAgentState('cutting', 'Ready', 'idle');
-    }
+  // the cut planning card carries the plan, then the floor's actual weights
+  function renderPlanCard(record) {
+    const p = record.plan;
+    if (!p) return;
+    const rows = p.stones.map(s =>
+      `<tr><td>${s.id}</td><td>${Planner.SHAPES[s.shape].name}</td><td class="num">${s.carat.toFixed(2)}</td><td class="num act" data-stone="${s.id}">Not set</td></tr>`).join('');
+    $('body-planning').innerHTML =
+      `<p class="rec-line">${record.scan.file}</p>
+       <dl class="kv two">
+         <div><dt>Rough</dt><dd class="num">${p.rough.carats.toFixed(2)} ct</dd></div>
+         <div><dt>Recovered</dt><dd class="num">${p.totalCarat.toFixed(2)} ct</dd></div>
+         <div><dt>Yield</dt><dd class="num">${p.yieldPct.toFixed(1)}%</dd></div>
+         <div><dt>Stones</dt><dd class="num">${p.stones.length}</dd></div>
+       </dl>
+       <div class="table-scroll"><table class="plan-table mini">
+         <thead><tr><th>Stone</th><th>Shape</th><th class="num">Plan ct</th><th class="num">Actual ct</th></tr></thead>
+         <tbody>${rows}</tbody></table></div>`;
+    setAgentState('planning', 'Plan ready', 'ok');
   }
 
   function renderCompliance(record, isSecondary) {
@@ -276,18 +290,22 @@
     setAgentState('quoting', q.blocked ? 'Held' : 'Quoted', q.blocked ? 'bad' : 'ok');
   }
 
+  // the floor's report lands back in the same card, beside what was planned
   function renderCutting(record) {
     const c = record.cutting;
     if (!c) return;
-    const rows = c.executed.map(s =>
-      `<tr><td>${s.id}</td><td>${Planner.SHAPES[s.shape].name}</td><td class="num">${s.planned.toFixed(2)}</td><td class="num">${s.actual.toFixed(2)}</td></tr>`).join('');
-    $('body-cutting').innerHTML =
-      `<p class="rec-line">${c.factory}</p>
-       <div class="table-scroll"><table class="plan-table mini">
-         <thead><tr><th>Stone</th><th>Shape</th><th class="num">Plan ct</th><th class="num">Actual ct</th></tr></thead>
-         <tbody>${rows}</tbody></table></div>
-       <p class="verdict ok">Report returned: ${c.actualTotal.toFixed(2)} ct, ${c.variancePct.toFixed(1)}% against plan.</p>`;
-    setAgentState('cutting', 'Report sent', 'ok');
+    for (const s of c.executed) {
+      const cell = document.querySelector(`#body-planning .act[data-stone="${s.id}"]`);
+      if (cell) cell.textContent = s.actual.toFixed(2);
+    }
+    const body = $('body-planning');
+    const old = body.querySelector('.verdict');
+    if (old) old.remove();
+    const v = document.createElement('p');
+    v.className = 'verdict ok';
+    v.textContent = `Cut at ${c.factory}. ${c.actualTotal.toFixed(2)} ct back, ${c.variancePct.toFixed(1)}% against plan.`;
+    body.appendChild(v);
+    setAgentState('planning', 'Cut and reported', 'ok');
   }
 
   function renderPassport(record) {
@@ -305,7 +323,8 @@
 
   const cycleUI = {
     log: cycleLog,
-    renderCompliance, renderQuote, renderCutting, renderPassport,
+    renderCompliance, renderQuote, renderCutting, renderPassport, renderPlanCard,
+    working: (agent, text) => setAgentState(agent, text || 'Working', 'work'),
   };
 
   // build the beat list

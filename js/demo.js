@@ -193,6 +193,7 @@ const Demo = (() => {
 
       // 3. cut planning
       await runBeat(2, async () => {
+        ui.working('planning', 'Scanning');
         const roughBtn = document.querySelector('#samples button[data-src*="rough-327"]');
         if (roughBtn) { roughBtn.click(); await wait(700); }
         focus('.console-grid', 'start');
@@ -209,7 +210,8 @@ const Demo = (() => {
 
       // 4. cutting
       await runBeat(3, async () => {
-        focus('#agent-cards', 'start');
+        focus('.agent-desk', 'start');
+        ui.working('planning', 'On the wheel');
         await wait(500);
         await Agents.cutting(record, ui);
         ui.renderCutting(record);
@@ -217,13 +219,16 @@ const Demo = (() => {
 
       // 5. compliance
       await runBeat(4, async () => {
-        focus('#agent-cards', 'start');
+        focus('.agent-desk', 'start');
+        ui.working('compliance', 'Checking');
         await Agents.compliance(record, ui);
         ui.renderCompliance(record);
       });
 
       // 6. quoting
       await runBeat(5, async () => {
+        focus('.agent-desk', 'start');
+        ui.working('quoting', 'Pricing');
         await Agents.quoting(record, ui);
         ui.renderQuote(record);
       });

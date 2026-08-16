@@ -139,38 +139,44 @@
       <div class="inbox-list" id="inbox-list"></div>
     </div>
 
+    <div class="agent-desk">
+      <div class="agent-desk-head">
+        <p class="label">The three agents, working the same record</p>
+        <span class="agent-desk-note">Cut planning hands the plan to the floor. Compliance proves the origin. Quoting prices what compliance proved.</span>
+      </div>
+      <div class="agent-cards" id="agent-cards">
+        <article class="agent-card" data-agent="planning">
+          <div class="agent-card-head">
+            <p class="label">Cut planning agent</p>
+            <span class="agent-state" id="state-planning">Idle</span>
+          </div>
+          <div class="agent-card-body" id="body-planning">
+            <p class="muted-line">Waiting for a scan.</p>
+          </div>
+        </article>
+        <article class="agent-card" data-agent="compliance">
+          <div class="agent-card-head">
+            <p class="label">Compliance agent</p>
+            <span class="agent-state" id="state-compliance">Idle</span>
+          </div>
+          <div class="agent-card-body" id="body-compliance">
+            <p class="muted-line">Waiting for the documents.</p>
+          </div>
+        </article>
+        <article class="agent-card" data-agent="quoting">
+          <div class="agent-card-head">
+            <p class="label">Quoting agent</p>
+            <span class="agent-state" id="state-quoting">Idle</span>
+          </div>
+          <div class="agent-card-body" id="body-quoting">
+            <p class="muted-line">Waiting on compliance.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+
     <div class="cycle-grid">
       <div class="cycle-main">
-        <div class="agent-cards" id="agent-cards">
-          <article class="agent-card" data-agent="compliance">
-            <div class="agent-card-head">
-              <p class="label">Compliance agent</p>
-              <span class="agent-state" id="state-compliance">Idle</span>
-            </div>
-            <div class="agent-card-body" id="body-compliance">
-              <p class="muted-line">Waiting for a record.</p>
-            </div>
-          </article>
-          <article class="agent-card" data-agent="quoting">
-            <div class="agent-card-head">
-              <p class="label">Quoting agent</p>
-              <span class="agent-state" id="state-quoting">Idle</span>
-            </div>
-            <div class="agent-card-body" id="body-quoting">
-              <p class="muted-line">Waiting on compliance.</p>
-            </div>
-          </article>
-          <article class="agent-card" data-agent="cutting">
-            <div class="agent-card-head">
-              <p class="label">Cutting agent</p>
-              <span class="agent-state" id="state-cutting">Idle</span>
-            </div>
-            <div class="agent-card-body" id="body-cutting">
-              <p class="muted-line">Waiting for a plan.</p>
-            </div>
-          </article>
-        </div>
-
         <article class="agent-card blocked-card" id="blocked-card" hidden>
           <div class="agent-card-head">
             <p class="label">Second record, screened</p>

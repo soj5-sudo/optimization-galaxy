@@ -625,7 +625,21 @@ footer {
 .cycle-main { display: grid; gap: var(--s-4); align-content: start; }
 .cycle-side { display: grid; gap: var(--s-3); align-content: start; }
 
-.agent-cards { display: grid; gap: var(--s-3); }
+.agent-desk {
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+  padding: var(--s-4);
+  display: grid; gap: var(--s-3);
+  margin-bottom: var(--s-4);
+}
+.agent-desk-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3); flex-wrap: wrap; }
+.agent-desk-note { font-size: 13px; color: var(--text-secondary); }
+.agent-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-3); align-items: start; }
+@media (max-width: 1020px) { .agent-cards { grid-template-columns: 1fr; } }
+.agent-card[data-live="true"] { border-color: var(--border-strong); background: var(--surface-2); }
+.agent-state[data-tone="work"] { color: var(--accent-bright); border-color: var(--border-strong); }
+.kv.two { grid-template-columns: repeat(2, 1fr); }
 .agent-card {
   border: 1px solid var(--border-hairline);
   border-radius: var(--r-panel);
