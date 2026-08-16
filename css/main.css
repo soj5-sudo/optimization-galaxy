@@ -812,7 +812,23 @@ footer {
 .mail-from { font-size: 13px; font-weight: 500; }
 .mail-when { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
 .mail-subject { font-size: 14px; color: var(--text-primary); }
-.mail-preview { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+.mail-means { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+.mail-channel {
+  font-size: 10px; font-weight: 500;
+  letter-spacing: 0.10em; text-transform: uppercase;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-pill);
+  padding: 3px 9px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.explain {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  border-left: 1px solid var(--border-strong);
+  padding-left: 12px;
+}
 .mail-att {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   border-top: 1px solid var(--border-hairline);
@@ -859,10 +875,10 @@ footer {
   pointer-events: none;
 }
 .caption-line {
-  max-width: 60ch;
+  max-width: 46ch;
   text-align: center;
-  font-size: clamp(18px, 2.1vw, 27px);
-  line-height: 1.35;
+  font-size: clamp(20px, 2.4vw, 30px);
+  line-height: 1.4;
   color: #ffffff;
   text-shadow: 0 2px 18px rgba(0, 0, 0, 0.9);
   letter-spacing: -0.005em;

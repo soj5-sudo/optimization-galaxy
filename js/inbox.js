@@ -8,9 +8,10 @@ const Inbox = (() => {
     'IGI-7996745173': [
       {
         type: 'mining',
+        channel: 'WhatsApp',
         from: 'Kagiso Sebina',
-        addr: 'exports@bw-roughsupply.co.bw',
-        subject: 'Parcel PRC-88231, KP certificate and export set',
+        addr: '+267 71 4xx xxx',
+        subject: 'Parcel PRC-88231, certificate attached',
         received: '08 Nov 2025, 09:14',
         preview: 'Attached is the Kimberley Process certificate and the export paperwork for parcel PRC-88231, 17.69 ct rough from Jwaneng. Cleared for shipment.',
         file: 'KP-BW-2025-114872.pdf',
@@ -24,6 +25,7 @@ const Inbox = (() => {
       },
       {
         type: 'lab',
+        channel: 'Email',
         from: 'IGI Antwerp',
         addr: 'reports@igi.org',
         subject: 'Report 7996745173 issued',
@@ -40,9 +42,10 @@ const Inbox = (() => {
       },
       {
         type: 'invoice',
-        from: 'Jewel Labs export desk',
-        addr: 'exports@jewellabs.org',
-        subject: 'Invoice INV-2026-0431, Antwerp Diamond Trading NV',
+        channel: 'Telegram',
+        from: 'Antwerp buyer',
+        addr: '@antwerp_dt',
+        subject: 'Invoice INV-2026-0431 for the Antwerp order',
         received: '02 Aug 2026, 11:47',
         preview: 'Invoice raised against the Antwerp order, CIP Antwerp. Polished in Surat. Please file the statement before the parcel moves.',
         file: 'INV-2026-0431.pdf',
@@ -58,8 +61,9 @@ const Inbox = (() => {
     'GIA-7373304073': [
       {
         type: 'mining',
+        channel: 'WhatsApp',
         from: 'Consignment desk',
-        addr: 'desk@third-party-consign.com',
+        addr: '+971 50 3xx xxx',
         subject: 'Consignment parcel PRC-44017, certificate attached',
         received: '30 Sep 2020, 08:31',
         preview: 'Certificate and export record for the consignment parcel, 2.48 ct rough. Held in stock since 2020.',
@@ -74,6 +78,7 @@ const Inbox = (() => {
       },
       {
         type: 'lab',
+        channel: 'Email',
         from: 'GIA',
         addr: 'reports@gia.edu',
         subject: 'Report 7373304073',
@@ -90,8 +95,9 @@ const Inbox = (() => {
       },
       {
         type: 'invoice',
+        channel: 'Telegram',
         from: 'Consignment desk',
-        addr: 'desk@third-party-consign.com',
+        addr: '@consign_desk',
         subject: 'Invoice INV-2026-0432',
         received: '03 Aug 2026, 15:20',
         preview: 'Invoice for the 1.00 ct against the same Antwerp order. Origin Botswana. Ready to ship with the rest of the parcel.',
@@ -108,6 +114,11 @@ const Inbox = (() => {
   };
 
   const LABEL = { mining: 'Mining certificate', lab: 'Lab report', invoice: 'Invoice' };
+  const MEANS = {
+    mining: 'Says which mine and country the rough came from',
+    lab: 'The stone\u2019s identity: carat, colour, clarity, graded by the lab',
+    invoice: 'The sale: who bought it, for how much, polished where',
+  };
 
   function el(tag, cls, text) {
     const n = document.createElement(tag);
@@ -127,16 +138,16 @@ const Inbox = (() => {
     const c = el('article', 'mail');
     c.dataset.type = mail.type;
     const head = el('div', 'mail-head');
-    head.append(
-      el('span', 'mail-from', mail.from),
-      el('span', 'mail-when', mail.received),
-    );
+    const who = el('span', 'mail-from', mail.from);
+    const chan = el('span', 'mail-channel', mail.channel);
+    chan.dataset.channel = mail.channel;
+    head.append(who, chan);
     const subj = el('p', 'mail-subject', mail.subject);
-    const prev = el('p', 'mail-preview', mail.preview);
     const att = el('div', 'mail-att');
     att.append(el('span', 'mail-clip', 'PDF'), el('span', 'mail-file', mail.file), el('span', 'mail-kind', LABEL[mail.type]));
+    const means = el('p', 'mail-means', MEANS[mail.type]);
     const fields = el('div', 'mail-fields');
-    c.append(head, subj, prev, att, fields);
+    c.append(head, subj, means, att, fields);
     c._fields = fields;
     return c;
   }

@@ -4,7 +4,10 @@
 
 const Demo = (() => {
 
-  const DWELL_MS = 10000;      // the film runs its own length, the rest hold ten seconds
+  const DWELL_MS = 12000;      // floor for a beat, so nothing flashes past
+  // a subtitle card holds long enough to read at an unhurried pace, about 130
+  // words a minute, with a floor for very short lines
+  const cardMs = text => Math.max(4000, Math.min(7000, 2500 + text.split(' ').length * 280));
   const wait = ms => new Promise(r => setTimeout(r, ms));
 
   const state = { running: false, paused: false, skip: false, beat: 0 };
@@ -19,57 +22,88 @@ const Demo = (() => {
   const BEATS = [
     {
       key: 'film',
-      title: 'The X-ray comes off the machine',
-      caption: 'This is how the scan is taken. The Galaxy machine X-rays the rough and maps what is inside it.',
+      title: 'The scan is taken',
+      cards: [
+        'This is our factory floor.',
+        'The machine X-rays the rough stone and maps every flaw inside it.',
+      ],
       point: null,
     },
     {
-      key: 'desk',
-      title: 'Four companies, one record',
-      caption: 'That parcel touches four companies in three countries. Today that runs on twenty WhatsApp threads. Here it is one record.',
-      point: { sel: '#desk-list', label: 'One record, not twenty threads' },
-    },
-    {
-      key: 'inbox',
-      title: 'Documents in, fields out',
-      caption: 'Nobody types a filing. Mining certificate, lab report, invoice. The agent reads each mail and pulls the fields out.',
-      point: { sel: '#inbox-count', label: 'Pulled from the documents' },
-    },
-    {
-      key: 'compliance',
-      title: 'Origin first',
-      caption: 'Origin is checked before anything else. Every field against the other two documents, then the statement customs demands.',
-      point: { sel: '#body-compliance .verdict', label: 'Statement filed' },
+      key: 'load',
+      title: 'Loaded into the computer',
+      cards: [
+        'That same scan goes straight into the computer.',
+        'It reads the stone, the outline, and where the flaws sit.',
+      ],
+      point: { sel: '#pipeline-strip', label: 'What the computer sees' },
     },
     {
       key: 'plan',
-      title: 'The model runs on the rough',
-      caption: 'Now the same X-ray you just watched. The model maps the inclusions and returns the plan that yields the most.',
-      point: { sel: '#stat-row .stat:nth-child(4)', label: 'Yield off this rough' },
+      title: 'Planning the cut',
+      cards: [
+        'Planning the cut means fitting polished stones inside the rough.',
+        'Around the flaws, never through them. Bigger and cleaner is worth more.',
+        'Only forty carats in every hundred survive the cut.',
+      ],
+      point: { sel: '#stat-row .stat:nth-child(4)', label: 'What survives the cut' },
     },
     {
       key: 'cut',
       title: 'The floor cuts it',
-      caption: 'The floor cuts it. What came off the wheel lands back in the same record, beside what was planned.',
+      cards: [
+        'The factory cuts to that plan.',
+        'What actually came off the wheel is recorded next to what was planned.',
+      ],
       point: { sel: '#body-planning .plan-table', label: 'Planned against actual' },
     },
     {
+      key: 'inbox',
+      title: 'The paperwork arrives',
+      cards: [
+        'The papers arrive the way they really do.',
+        'Email, WhatsApp, Telegram. Mine certificate, lab report, invoice.',
+        'The software reads them and takes every field out. Nothing is typed.',
+      ],
+      point: { sel: '#inbox-count', label: 'Read, not typed' },
+    },
+    {
+      key: 'compliance',
+      title: 'Proving where it came from',
+      cards: [
+        'Now the hard part: proving where the stone came from.',
+        'Every field is checked against the other two documents.',
+        'They agree, so the statement customs asks for is filed.',
+      ],
+      point: { sel: '#body-compliance .verdict', label: 'Filed' },
+    },
+    {
       key: 'quote',
-      title: 'Duty, then the bid',
-      caption: 'Where it was polished sets the import duty. Compliance proved that field, so the price cannot contradict the filing.',
+      title: 'What it is worth',
+      cards: [
+        'Rapaport is the price list the whole trade works off.',
+        'Nobody pays list. Take off the discount, the duty and the cutting cost,',
+        'and that is the most I can pay for the rough.',
+      ],
       point: { sel: '#body-quoting .kv div:last-child', label: 'The most I can pay' },
     },
     {
       key: 'blocked',
-      title: 'Blocked at the desk',
-      caption: 'Second stone. The invoice says Botswana. The certificate says Russian Federation. It stops at the desk, not the border.',
-      point: { sel: '#body-blocked .verdict', label: 'Stopped before it ships' },
+      title: 'The one we stop',
+      cards: [
+        'A second stone. The invoice says Botswana.',
+        'The mine certificate says Russia. It stops at our desk, not the border.',
+      ],
+      point: { sel: '#body-blocked .verdict', label: 'Stopped here' },
     },
     {
       key: 'passport',
       title: 'One record per stone',
-      caption: 'Three jobs, one record per stone. Every field carrying the document it came from.',
-      point: { sel: '#passport-table', label: 'Every field, its source' },
+      cards: [
+        'One record per stone, from the rough to the sale.',
+        'Every number on it showing the document it came from.',
+      ],
+      point: { sel: '#passport-table', label: 'Every number, its source' },
     },
   ];
 
@@ -87,8 +121,25 @@ const Demo = (() => {
     if (n) n.textContent = `${String(i + 1).padStart(2, '0')} of ${String(BEATS.length).padStart(2, '0')}`;
     if (t) t.textContent = b.title;
     const l = document.getElementById('beat-line');
-    if (l) l.textContent = b.caption;
-    caption(b.caption);
+    if (l) l.textContent = b.cards[0];
+    runCards(b.cards);
+  }
+
+  // steps the subtitle through a beat's cards, pausing with the run
+  let cardTimer = null;
+  function runCards(cards) {
+    clearTimeout(cardTimer);
+    let i = 0;
+    caption(cards[0]);
+    const step = () => {
+      if (!state.running) return;
+      if (state.paused) { cardTimer = setTimeout(step, 200); return; }
+      i += 1;
+      if (i >= cards.length) return;
+      caption(cards[i]);
+      cardTimer = setTimeout(step, cardMs(cards[i]));
+    };
+    if (cards.length > 1) cardTimer = setTimeout(step, cardMs(cards[0]));
   }
 
   // ---------- subtitles ----------
@@ -151,14 +202,16 @@ const Demo = (() => {
 
   // hold on the current beat until its half minute is up, unless skipped.
   // paused time does not count, so the presenter can stop and explain.
-  async function hold(startedAt) {
-    const target = startedAt + DWELL_MS;
+  async function hold(startedAt, cards) {
+    const reading = (cards || []).reduce((n, c) => n + cardMs(c), 0);
+    const needed = Math.max(DWELL_MS, reading + 800);
+    const target = startedAt + needed;
     while (!state.skip) {
       const now = performance.now();
       if (state.paused) { await wait(120); continue; }
       const left = target - now;
       if (left <= 0) break;
-      setHold(1 - left / DWELL_MS);
+      setHold(1 - left / needed);
       await wait(120);
     }
     state.skip = false;
@@ -175,8 +228,25 @@ const Demo = (() => {
     const t0 = performance.now();
     await work();
     if (b.point) { await wait(120); point(b.point); }
-    await hold(t0);
+    await hold(t0, b.cards);
     setStep(b.key, 'done');
+  }
+
+  // opens the shared session and puts the desk on screen before the film runs
+  async function openSession(ui) {
+    if (!Session.state.id) {
+      const id = await Session.create();
+      await Session.join(id, 'Soham (Source)');
+    }
+    const info = await Session.hostInfo();
+    const urls = Session.shareUrls(Session.state.id, info);
+    const link = document.getElementById('demo-link');
+    if (link) { link.textContent = urls[0]; link.parentElement.hidden = false; }
+    for (const p of DESK) {
+      if (p.name !== 'Soham') await joinDeskMember(p);
+      deskCard(p, ui);
+    }
+    ui.log('SESSION', 'Wasi, Anik and Soham are on this record together');
   }
 
   // ---------- the film ----------
@@ -273,16 +343,16 @@ const Demo = (() => {
     for (const b of BEATS) setStep(b.key, 'pending');
 
     try {
-      // 0. the film: how the X-ray is taken
+      // 0. the film: how the scan is taken
+      await openSession(ui);
+
       await runBeat(0, async () => {
         await playFilm(ui);
-        // the same scan the film ends on now lands on the record
         const roughBtn = document.querySelector('#samples button[data-src*="rough-327"]');
         if (roughBtn) { roughBtn.click(); await wait(500); }
         ui.log('RECORD', 'Scan 327.8 received from the factory, record opened');
       });
 
-      // the record exists from here, so compliance can run before the plan
       const record = Records.create({
         scanName: app.imageName || 'Galaxy rough scan 327.8',
         scanSource: 'factory scan',
@@ -290,58 +360,25 @@ const Demo = (() => {
       });
       app.record = record;
 
-      // 1. the desk
+      // 1. loaded into the computer, and the model runs
       await runBeat(1, async () => {
-        focus('#desk-panel', 'center');
-        ui.log('SESSION', 'Opening a shared session on this stone');
-        if (!Session.state.id) {
-          const id = await Session.create();
-          await Session.join(id, 'Soham (Source)');
-        }
-        const info = await Session.hostInfo();
-        const urls = Session.shareUrls(Session.state.id, info);
-        const link = document.getElementById('demo-link');
-        link.textContent = urls[0];
-        link.parentElement.hidden = false;
-        for (const p of DESK) {
-          if (p.name !== 'Soham') await joinDeskMember(p);
-          deskCard(p, ui);
-          ui.log('SESSION', `${p.name} joined as <span class="num">${p.role}</span>`);
-          await wait(600);
-        }
-      });
-
-      // 2. the documents
-      await runBeat(2, async () => {
-        document.getElementById('inbox-panel').hidden = false;
-        focus('#inbox-panel', 'start');
-        await ingest(app.imageDocKey || 'IGI-7996745173', ui);
-      });
-
-      // 3. compliance, before anything is planned or priced
-      await runBeat(3, async () => {
-        focus('.agent-desk', 'start');
-        ui.working('compliance', 'Checking');
-        await Agents.compliance(record, ui);
-        ui.renderCompliance(record);
-      });
-
-      // 4. the model on the rough
-      await runBeat(4, async () => {
-        ui.working('planning', 'Scanning');
+        ui.working('planning', 'Reading the scan');
         focus('.console-grid', 'start');
         await wait(400);
         await app.run(false, { noScroll: true });
         if (!app.record || !app.record.plan) {
-          ui.log('MODEL', 'No usable plan for this scan. Pick another scan and run the model again');
+          ui.log('MODEL', 'No usable plan for this scan. Pick another scan and start again');
           throw new Error('no plan');
         }
-        await wait(300);
+      });
+
+      // 2. the plan itself
+      await runBeat(2, async () => {
         focus('.ba-grid', 'center');
       });
 
-      // 5. the floor
-      await runBeat(5, async () => {
+      // 3. the floor
+      await runBeat(3, async () => {
         focus('.agent-desk', 'start');
         ui.working('planning', 'On the wheel');
         await wait(400);
@@ -349,7 +386,22 @@ const Demo = (() => {
         ui.renderCutting(record);
       });
 
-      // 6. the price
+      // 4. the paperwork, however it arrives
+      await runBeat(4, async () => {
+        document.getElementById('inbox-panel').hidden = false;
+        focus('#inbox-panel', 'start');
+        await ingest(app.imageDocKey || 'IGI-7996745173', ui);
+      });
+
+      // 5. proving the origin
+      await runBeat(5, async () => {
+        focus('.agent-desk', 'start');
+        ui.working('compliance', 'Checking');
+        await Agents.compliance(record, ui);
+        ui.renderCompliance(record);
+      });
+
+      // 6. what it is worth
       await runBeat(6, async () => {
         focus('.agent-desk', 'start');
         ui.working('quoting', 'Pricing');
@@ -357,7 +409,7 @@ const Demo = (() => {
         ui.renderQuote(record);
       });
 
-      // 7. the stone that is stopped
+      // 7. the one we stop
       await runBeat(7, async () => {
         ui.log('SESSION', 'Second stone on the same order, a 1.00 ct');
         document.getElementById('inbox-panel').hidden = false;
@@ -380,7 +432,7 @@ const Demo = (() => {
         ui.renderPassport(record);
         await wait(300);
         focus('#passport', 'center');
-        ui.log('RECORD', `Passport <span class="num">${record.id}</span> complete. ${record.audit.length} audited actions, one record`);
+        ui.log('RECORD', `Record ${record.id} complete, ${record.audit.length} steps, all on one sheet`);
       });
 
       showBeat(BEATS.length - 1);
@@ -451,7 +503,7 @@ const Demo = (() => {
     const rule = '-'.repeat(72);
     const L = [];
     L.push('OPTIMIZATION GALAXY, SPOKEN SCRIPT');
-    L.push('Nine beats. The film runs seventeen seconds, the rest hold ten. Total about one minute forty.');
+    L.push('Nine beats. The film opens it, the rest hold long enough to read. About two minutes ten.');
     L.push('The subtitle on screen is the short version. The lines below are what you say.');
     L.push('Pause stops the clock. Next moves on early. Nothing runs away from you.');
     L.push(rule);
@@ -465,21 +517,21 @@ const Demo = (() => {
     L.push(rule);
 
     const spoken = [
-      "That is our factory. The Galaxy machine X-rays the rough and maps every inclusion inside it. What you are watching is the scan being taken.",
-      "That one parcel touches four companies in three countries. Today that runs on about twenty WhatsApp threads. We put all four on the same record.",
-      "Nobody types a filing. Mining certificate, lab report, invoice. The agent reads each mail and pulls fifteen fields straight out of the documents.",
-      "Origin first, always. Every field checked against the other two documents, then the Due Diligence Statement. Mandatory in the EU since January twenty twenty six.",
-      "Now the same X-ray from the film. The model maps the inclusions and returns the plan that yields the most. Only forty carats in a hundred survive.",
-      "The floor cuts it. What came off the wheel lands back on the same record, beside what was planned, so I can see the variance.",
-      "Where it was polished sets the import duty. Compliance already proved that field, so the price and the filing cannot disagree. Forty three thousand is my ceiling.",
-      "Second stone. The invoice says Botswana, the certificate says Russian Federation. Stopped at the desk. At the border that is forty percent of the shipment plus seizure.",
-      "Three jobs, one record per stone. Compliance, price and cut plan off the same facts. Ten people do this by hand in nine days. That was ninety seconds.",
+      "That is our factory. The machine takes an X-ray of the rough stone and maps every flaw inside it, before anyone cuts anything.",
+      "That same scan goes straight into the computer. It finds the stone, traces the outline, and marks where the flaws sit inside it.",
+      "Planning the cut means fitting polished stones inside the rough, around the flaws. Only about forty carats in every hundred survive.",
+      "The factory cuts to the plan, and what actually came off the wheel is written back next to what we planned. Nothing is re-keyed.",
+      "The papers arrive the way they really do, on email, WhatsApp and Telegram. The software reads them and takes every field out.",
+      "Now the hard part. Where the stone came from, checked against all three documents, then the statement customs asks for is filed.",
+      "Rapaport is the price list the trade works off. Nobody pays list. Take off the discount, the duty and the cutting cost, and that is my ceiling.",
+      "A second stone. The invoice says Botswana, the mine certificate says Russia. It stops at our desk. At the border it costs forty percent and the goods.",
+      "One record per stone, from the rough to the sale, every number showing the document it came from. Ten people do this by hand in nine days.",
     ];
 
     BEATS.forEach((b, i) => {
       L.push('');
-      L.push(`BEAT ${i + 1}, ${b.title.toUpperCase()}   (${b.key === 'film' ? 'about 17 seconds, the film' : 'about 10 seconds'})`);
-      L.push('  Subtitle: ' + b.caption);
+      L.push(`BEAT ${i + 1}, ${b.title.toUpperCase()}   (${b.key === 'film' ? 'the film, 15 seconds' : b.cards.length + ' subtitle cards'})`);
+      b.cards.forEach(c => L.push('  Subtitle: ' + c));
       if (b.point) L.push('  Pointer lands on: ' + b.point.label);
       L.push('  Say:');
       for (const line of wrapText(spoken[i], 76)) L.push('    ' + line);

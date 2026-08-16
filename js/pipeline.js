@@ -5,13 +5,13 @@
 const Pipeline = (() => {
 
   const STAGES = [
-    { key: 'input', label: 'INPUT', caption: '224 x 224 x 3, normalized' },
-    { key: 'stem', label: 'STEM', caption: 'Conv 7x7/2, 64ch, SiLU' },
-    { key: 'enc2', label: 'ENC-2', caption: 'ResBlock x3, 128ch' },
-    { key: 'enc3', label: 'ENC-3', caption: 'ResBlock x4, 256ch' },
-    { key: 'seg', label: 'SEG HEAD', caption: 'U-Net decoder, inclusion mask' },
-    { key: 'plan', label: 'PLAN HEAD', caption: 'value grid + placement search' },
-    { key: 'out', label: 'OUTPUT', caption: 'cut plan, graded and priced' },
+    { key: 'input', label: 'THE SCAN', caption: 'The X-ray, as it came off the machine' },
+    { key: 'stem', label: 'LIGHT', caption: 'Where the stone is, and where it is not' },
+    { key: 'enc2', label: 'EDGES', caption: 'The outline of the rough' },
+    { key: 'enc3', label: 'FLAW HEAT', caption: 'Where the flaws cluster' },
+    { key: 'seg', label: 'FLAWS FOUND', caption: 'Every flaw marked, one by one' },
+    { key: 'plan', label: 'FIT SEARCH', caption: 'Trying millions of ways to cut it' },
+    { key: 'out', label: 'THE PLAN', caption: 'The stones we can get out' },
   ];
 
   function el(tag, cls, text) {
@@ -105,7 +105,7 @@ const Pipeline = (() => {
     const setProg = f => { progress.style.width = `${Math.round(f * 100)}%`; };
 
     setStatus('Running inference', true);
-    logLine(log, 'GXN-2', `Forward pass started on <span class="num">${img.naturalWidth} x ${img.naturalHeight}</span> source`);
+    logLine(log, 'MODEL', `Reading the scan, <span class="num">${img.naturalWidth} x ${img.naturalHeight}</span>`);
     setProg(0.04);
 
     const t0 = performance.now();
@@ -118,34 +118,34 @@ const Pipeline = (() => {
 
     // stage 2: stem (gray)
     strip.appendChild(tile(STAGES[1], CV.renderMap(an.maps.lum, an.W, an.H, { mode: 'gray' }),
-      `mean act ${(an.stoneMeanLum / 255).toFixed(3)}`));
-    logLine(log, 'STEM', `Backbone stem activated, background luminance <span class="num">${an.bgLum.toFixed(0)}</span>, stone luminance <span class="num">${an.stoneMeanLum.toFixed(0)}</span>`);
+      ''));
+    logLine(log, 'MODEL', 'Separating the stone from the background');
     await wait(420); setProg(0.26);
 
     // stage 3: edges
     strip.appendChild(tile(STAGES[2], CV.renderMap(an.maps.edges, an.W, an.H, { mode: 'ice' }),
-      `edge energy ${an.stats.edgeMean.toFixed(1)}`));
-    logLine(log, 'ENC-2', `Boundary response extracted via ${an.stats.segMethod} cue. Silhouette fill <span class="num">${(an.stats.fill * 100).toFixed(1)}%</span> of bounding box`);
+      ''));
+    logLine(log, 'MODEL', `Outline traced, the rough fills <span class="num">${(an.stats.fill * 100).toFixed(1)}%</span> of the frame`);
     await wait(420); setProg(0.38);
 
     // stage 4: heat
     strip.appendChild(tile(STAGES[3], CV.renderMap(an.maps.heat, an.W, an.H, { mode: 'heat' }),
-      `defect density field`));
+      ''));
     await wait(380); setProg(0.5);
 
     // stage 5: segmentation
     strip.appendChild(tile(STAGES[4], maskOverlayThumb(an),
-      `IoU est ${an.stats.segConfidence.toFixed(3)}`));
-    logLine(log, 'SEG', `Segmented <span class="num">${an.inclusions.length}</span> internal features, coverage <span class="num">${(an.stats.coverage * 100).toFixed(2)}%</span>${an.annotations.length ? `, rejected <span class="num">${an.annotations.length}</span> prior-plan overlay${an.annotations.length > 1 ? 's' : ''}` : ''}`);
+      `${an.inclusions.length} flaws`));
+    logLine(log, 'MODEL', `Found <span class="num">${an.inclusions.length}</span> flaws inside the stone`);
     await wait(430); setProg(0.62);
 
     // stage 6: plan search (real optimization runs inside)
     let evals = 0;
     const result = await Planner.plan(an, params, (name, frac) => {
       setProg(0.62 + frac * 0.3);
-      if (name === 'primary') logLine(log, 'PLAN', 'Placement search: primary stone, 7 rotations x 676 anchors x 9 scale refinements');
-      if (name === 'secondary') logLine(log, 'PLAN', 'Placement search: secondary stone in residual volume, kerf margin applied');
-      if (name === 'tertiary') logLine(log, 'PLAN', 'Placement search: tertiary recovery pass');
+      if (name === 'primary') logLine(log, 'MODEL', 'Searching for the biggest stone that misses the flaws');
+      if (name === 'secondary') logLine(log, 'MODEL', 'Now the second stone, from what is left over');
+      if (name === 'tertiary') logLine(log, 'MODEL', 'And a third, if the offcut is worth cutting');
     });
 
     if (result.error) {
@@ -156,7 +156,7 @@ const Pipeline = (() => {
     }
 
     strip.appendChild(tile(STAGES[5], CV.renderMap(an.maps.heat, an.W, an.H, { mode: 'ice' }),
-      `${result.evaluated.toLocaleString()} placements scored`));
+      `${result.evaluated.toLocaleString()} options tried`));
     await wait(380); setProg(0.95);
 
     // stage 7: output
@@ -164,7 +164,7 @@ const Pipeline = (() => {
       `${result.stones.length} stones, ${result.yieldPct.toFixed(1)}% yield`));
 
     const totalMs = performance.now() - t0;
-    logLine(log, 'GXN-2', `Plan locked: <span class="num">${result.stones.length}</span> stones, <span class="num">${result.totalCarat.toFixed(2)} ct</span> recovered, est <span class="num">$${result.totalValue.toLocaleString()}</span>. Wall time <span class="num">${(totalMs / 1000).toFixed(2)}s</span> (analysis ${analysisMs.toFixed(0)}ms)`);
+    logLine(log, 'MODEL', `Plan ready: <span class="num">${result.stones.length}</span> stones, <span class="num">${result.totalCarat.toFixed(2)} ct</span> out of the rough, in <span class="num">${(totalMs / 1000).toFixed(1)}s</span>`);
     setStatus('Plan ready', false);
     setProg(1);
     return { an, result };

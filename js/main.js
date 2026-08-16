@@ -282,10 +282,12 @@
     if (!q) return;
     const money = n => `$${Math.round(n).toLocaleString()}`;
     $('body-quoting').innerHTML =
-      `<dl class="kv">
-        <div><dt>Graded stone</dt><dd class="num">${money(q.gradedValue)}</dd></div>
-        <div><dt>Planned revenue</dt><dd class="num">${money(q.revenue)}</dd></div>
-        <div><dt>Country of polish</dt><dd>${d.invoice.countryOfPolish}</dd></div>
+      `<p class="explain">The Rapaport list is the trade's weekly price sheet. Stones sell at a discount to it,
+        quoted as back of Rap.</p>
+       <dl class="kv">
+        <div><dt>Rapaport list</dt><dd class="num">${money(q.rapList)} per ct</dd></div>
+        <div><dt>Back of list</dt><dd class="num">${q.discountPct}%</dd></div>
+        <div><dt>Net per carat</dt><dd class="num">${money(q.ppc)}</dd></div>
         <div><dt>Import duty</dt><dd class="num">${q.tariffPct === null ? 'Not set' : q.tariffPct.toFixed(1) + '%'}, ${money(q.duty)}</dd></div>
         <div><dt>Manufacturing</dt><dd class="num">${money(q.manufacturing)}</dd></div>
         <div><dt>Rough bid ceiling</dt><dd class="num">${money(q.roughBid)}</dd></div>

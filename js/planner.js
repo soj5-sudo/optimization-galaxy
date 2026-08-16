@@ -32,11 +32,19 @@ const Planner = (() => {
 
   const CLARITIES = ['IF', 'VVS1', 'VVS2', 'VS1', 'VS2', 'SI1', 'SI2', 'I1'];
 
-  // simulated price grid: USD per carat by clarity for a ~1ct G-color reference,
-  // scaled by a carat-size curve with step-ups at trade thresholds
-  const PPC_BY_CLARITY = {
+  // The trade prices off the Rapaport list: a weekly sheet of asking prices per
+  // carat, by shape, size, colour and clarity. Stones almost never sell at list.
+  // They sell at a discount to it, quoted as "back of Rap", for example minus 30%.
+  // Figures below are indicative for this demo, not the real sheet.
+  const RAP_LIST_PER_CT = {
     IF: 9800, VVS1: 8900, VVS2: 8100, VS1: 7200, VS2: 6400,
     SI1: 5300, SI2: 4300, I1: 2400,
+  };
+
+  // how far back of the list each clarity typically trades in this demo
+  const RAP_DISCOUNT_PCT = {
+    IF: 18, VVS1: 20, VVS2: 22, VS1: 25, VS2: 27,
+    SI1: 30, SI2: 33, I1: 42,
   };
 
   function sizeCurve(ct) {
@@ -50,8 +58,16 @@ const Planner = (() => {
     return 0.4;
   }
 
+  // the full quote, so the UI can show list, discount and net rather than one number
+  function rapQuote(clarity, ct, shape) {
+    const list = Math.round(RAP_LIST_PER_CT[clarity] * sizeCurve(ct) * SHAPES[shape].priceFactor);
+    const discountPct = RAP_DISCOUNT_PCT[clarity];
+    const net = Math.round(list * (1 - discountPct / 100));
+    return { list, discountPct, net, total: Math.round(net * ct) };
+  }
+
   function pricePerCarat(clarity, ct, shape) {
-    return Math.round(PPC_BY_CLARITY[clarity] * sizeCurve(ct) * SHAPES[shape].priceFactor);
+    return rapQuote(clarity, ct, shape).net;
   }
 
   function profilePolygon(shape, d, cx, cy, rot) {
@@ -325,5 +341,5 @@ const Planner = (() => {
     };
   }
 
-  return { plan, SHAPES, profilePolygon, pricePerCarat, densify };
+  return { plan, SHAPES, profilePolygon, pricePerCarat, rapQuote, densify };
 })();
