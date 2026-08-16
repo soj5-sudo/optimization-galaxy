@@ -558,3 +558,162 @@ footer {
   color: var(--accent-bright);
   overflow-x: auto; white-space: nowrap;
 }
+
+/* ---------- the cycle: jobs, agents, passport, demo ---------- */
+
+#cycle { border-bottom: 1px solid var(--border-hairline); }
+
+.cycle-jobs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border-hairline);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--r-panel);
+  overflow: hidden;
+  margin-bottom: var(--s-4);
+}
+@media (max-width: 900px) { .cycle-jobs { grid-template-columns: 1fr; } }
+.job { background: var(--surface); padding: var(--s-4); display: grid; gap: 10px; align-content: start; }
+.job h3 { font-size: 18px; font-weight: 500; }
+.job p { font-size: 14px; color: var(--text-secondary); }
+.job .job-stake {
+  font-size: 13px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-hairline);
+  padding-top: 10px;
+}
+
+.demo-bar {
+  display: flex; align-items: center; gap: var(--s-4);
+  justify-content: space-between; flex-wrap: wrap;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+  padding: var(--s-4);
+  margin-bottom: var(--s-3);
+}
+.demo-sub { font-size: 14px; color: var(--text-secondary); max-width: 74ch; margin-top: 6px; }
+.demo-bar-actions { display: flex; gap: var(--s-2); }
+
+.demo-panel {
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--r-panel);
+  background: var(--bg-raised);
+  padding: var(--s-4);
+  margin-bottom: var(--s-4);
+  display: grid; gap: var(--s-3);
+}
+.demo-steps { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.demo-step {
+  display: flex; align-items: center; gap: 8px;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--r-pill);
+  padding: 6px 14px;
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: border-color var(--t-micro) var(--ease-out), color var(--t-micro) var(--ease-out);
+}
+.demo-step .ds-index { font-size: 10px; opacity: 0.7; }
+.demo-step[data-state="active"] { border-color: var(--accent); color: var(--accent-bright); }
+.demo-step[data-state="done"] { border-color: rgba(134,199,180,0.5); color: var(--plan); }
+.demo-narration {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 300;
+  line-height: 1.35;
+  color: var(--text-primary);
+  min-height: 34px;
+}
+.demo-link-row { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap; }
+.demo-link-row code { font-size: 13px; color: var(--accent-bright); }
+
+.cycle-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: var(--s-4); }
+@media (max-width: 1020px) { .cycle-grid { grid-template-columns: 1fr; } }
+.cycle-main { display: grid; gap: var(--s-4); align-content: start; }
+.cycle-side { display: grid; gap: var(--s-3); align-content: start; }
+
+.agent-cards { display: grid; gap: var(--s-3); }
+.agent-card {
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+  padding: var(--s-4);
+  display: grid; gap: var(--s-3);
+}
+.agent-card-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
+.agent-card .agent-state {
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--r-pill);
+  padding: 4px 12px;
+  color: var(--text-muted);
+}
+.agent-state[data-tone="ok"] { color: var(--plan); border-color: rgba(134,199,180,0.45); }
+.agent-state[data-tone="bad"] { color: var(--flaw); border-color: rgba(217,106,118,0.45); }
+.muted-line { font-size: 14px; color: var(--text-muted); }
+.rec-line { font-size: 12px; color: var(--text-muted); letter-spacing: 0.04em; }
+.verdict { font-size: 14px; font-weight: 500; }
+.verdict.ok { color: var(--plan); }
+.verdict.bad { color: var(--flaw); }
+
+.chk-list { list-style: none; display: grid; gap: 8px; }
+.chk { display: grid; grid-template-columns: 52px 1fr; gap: 10px; font-size: 13px; color: var(--text-secondary); }
+.chk strong { color: var(--text-primary); font-weight: 500; }
+.chk-mark { font-size: 10px; letter-spacing: 0.10em; text-transform: uppercase; padding-top: 2px; }
+.chk.ok .chk-mark { color: var(--plan); }
+.chk.bad .chk-mark { color: var(--flaw); }
+.chk.bad strong { color: var(--flaw); }
+
+.kv { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s-2) var(--s-4); }
+@media (max-width: 620px) { .kv { grid-template-columns: 1fr; } }
+.kv dt { font-size: 10px; letter-spacing: 0.10em; text-transform: uppercase; color: var(--text-muted); }
+.kv dd { font-size: 16px; font-weight: 500; }
+
+.plan-table.mini { font-size: 13px; }
+.plan-table.mini th, .plan-table.mini td { padding: 7px 10px; }
+.plan-table td.src { color: var(--text-muted); font-size: 12px; }
+
+.passport {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+  padding: var(--s-4);
+  display: grid; gap: var(--s-3);
+}
+.passport-head { display: flex; align-items: center; justify-content: space-between; }
+.passport-id { font-size: 14px; color: var(--accent-bright); }
+.passport-actions { display: flex; gap: var(--s-2); flex-wrap: wrap; }
+
+.docs-strip {
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+  padding: var(--s-3);
+  display: grid; gap: 10px;
+}
+.doc-thumb { display: grid; gap: 6px; color: var(--text-secondary); }
+.doc-thumb img {
+  width: 100%;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--r-soft);
+  background: #fff;
+  transition: border-color var(--t-micro) var(--ease-out);
+}
+.doc-thumb:hover img { border-color: var(--accent); }
+.doc-thumb span { font-size: 11px; letter-spacing: 0.06em; color: var(--text-muted); }
+
+#cycle .agent-log { height: 300px; }
+.agent-log .bad { color: var(--flaw); }
+.blocked-card { border-color: rgba(217, 106, 118, 0.4); }
+
+/* nav crowding: roster chips plus two actions need room */
+.nav { gap: var(--s-3); }
+.nav-brand { flex: 0 0 auto; }
+.nav-links { flex: 0 1 auto; }
+.nav-actions { flex: 0 0 auto; }
+@media (max-width: 1280px) { .nav-links { display: none; } }
+@media (max-width: 900px) {
+  .participants { display: none; }
+  .nav { padding: 14px var(--s-3); }
+}
