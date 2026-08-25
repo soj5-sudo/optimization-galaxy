@@ -245,6 +245,7 @@
     }
 
     const cnnStatus = await CNN.load();
+    const policy = await PreCut.loadPolicy();
     let host = {};
     try { host = await (await fetch('/api/hostinfo')).json(); } catch (e) {}
 
@@ -253,6 +254,7 @@
       mail: host.mail || 'unknown',
       cnn: cnnStatus.loaded ? 'trained and loaded' : 'not trained yet',
       rules: Object.keys(app.ruleSets).length + ' rule sets',
+      gate: policy ? 'learned policy' : 'threshold table',
     };
 
     renderRail();
@@ -941,6 +943,47 @@
     c.body.append(honest);
     p.append(c);
 
+    // the policy that decides cut or hold, learned rather than typed in
+    fetch('ml/artifacts/policy.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(pol => {
+      if (!pol) return;
+      const rc = card('The cut or hold policy, learned',
+        'This used to be a table of numbers a person chose. It is now learned by reinforcement: the software cuts, sees what came back, and adjusts.');
+      const kv = el('dl', 'og-kv og-kv--rows');
+      const rows = [
+        ['How it learns', pol.method],
+        ['What it decides', 'Cut this stone, or hold it back'],
+        ['What it is rewarded on', 'Money. A stone that passes earns, a stone that comes back costs the rough, the wheel time and the return'],
+        ['Where outcomes come from', pol.environment],
+      ];
+      for (const [k, v] of rows) kv.append(el('dt', 'og-kv__term', k), el('dd', 'og-kv__value', v));
+      rc.body.append(kv);
+
+      // the learned weights, in plain words
+      const wrap = el('div', 'og-table-wrap');
+      const t = el('table', 'og-table og-table--dense');
+      t.innerHTML = '<thead><tr><th>What it looks at</th><th>What it learned</th></tr></thead>';
+      const tb = el('tbody');
+      const PLAIN = {
+        flaw_coverage: 'Flaws inside the outline',
+        rim_proximity: 'A flaw sitting on the rim',
+        uncertainty: 'A poor read of the stone',
+        clarity_penalty: 'Grade below what the buyer takes',
+        size_shortfall: 'Too small to be worth the wheel',
+        bias: 'Its starting willingness to cut',
+      };
+      (pol.features || []).forEach((f, i) => {
+        const w = pol.weights[i];
+        const tr = el('tr');
+        tr.innerHTML = `<td>${PLAIN[f] || f}</td><td>${w > 0.5 ? 'Cut' : w < -0.5 ? 'Hold back' : 'Barely matters'}</td>`;
+        tb.append(tr);
+      });
+      t.append(tb);
+      wrap.append(t);
+      rc.body.append(wrap);
+      rc.body.append(el('p', 'og-hint', 'Read down that column and it says: cut by default, hold when the stone is flawed, chipped at the rim, under grade or too small. Nobody wrote those rules, it found them.'));
+      p.append(rc);
+    });
+
     // What the model actually learned, drawn from the weights themselves.
     // The first layer filters are the edge and speckle detectors it built while
     // training. They are proof the thing learned something, without putting a
@@ -1191,8 +1234,75 @@
     $('share-drawer').hidden = false;
   }
 
+  // ---------- the machine ----------
+  // Connecting plays the feed from the scanner while the scan comes across,
+  // then drops straight into the record. It fails open: if the clip will not
+  // play the run carries on without it, because nothing important lives in it.
+  async function connectMachine() {
+    const film = $('film');
+    const v = $('film-video');
+    const btn = $('btn-connect');
+    btn.disabled = true;
+    log('galaxy machine', 'Connecting to the scanner');
+    try {
+      if (!v.src) v.src = 'assets/factory.mp4';
+      film.hidden = false;
+      v.currentTime = 0;
+      await v.play();
+      await new Promise(done => {
+        let settled = false;
+        const finish = () => { if (!settled) { settled = true; done(); } };
+        v.addEventListener('ended', finish, { once: true });
+        v.addEventListener('error', finish, { once: true });
+        setTimeout(finish, ((v.duration || 15) + 2) * 1000);
+      });
+    } catch (e) {
+      log('galaxy machine', 'The feed would not play, carrying on without it', 'warn');
+    }
+    film.classList.add('is-out');
+    setTimeout(() => { film.hidden = true; film.classList.remove('is-out'); }, 360);
+    log('galaxy machine', `Scan received from the machine, ${app.stone.label}`, 'ok');
+    await audit('galaxy_machine', 'Scan received', app.stone.label, { stone: app.stone.id });
+    btn.disabled = false;
+    app.tab = 'overview';
+    for (const b of document.querySelectorAll('.og-tab')) b.classList.toggle('og-tab--active', b.dataset.tab === 'overview');
+    for (const pn of document.querySelectorAll('.og-tabpanel')) pn.classList.toggle('is-active', pn.dataset.panel === 'overview');
+    render();
+    runShipment();
+  }
+
+  // Your own scan, straight off the machine, analysed exactly like the samples.
+  function uploadScan(file) {
+    if (!file || !file.type.startsWith('image/')) {
+      log('galaxy machine', 'That file is not an image', 'warn');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const stone = {
+        id: 'ST-' + Math.random().toString(36).slice(2, 6).toUpperCase(),
+        label: file.name.replace(/\.[a-z0-9]+$/i, ''),
+        growthMethod: app.stone.growthMethod,
+        scan: reader.result,
+        scanWidthMm: app.stone.scanWidthMm,
+        docKey: app.stone.docKey,
+        houseId: app.stone.houseId,
+        uploaded: true,
+      };
+      app.shipment.stones.push(stone);
+      app.stone = stone;
+      log('galaxy machine', `Loaded ${file.name} as a new stone on this shipment`, 'ok');
+      render();
+      runShipment();
+    };
+    reader.readAsDataURL(file);
+  }
+
   // ---------- wiring ----------
   $('btn-run').addEventListener('click', runShipment);
+  $('btn-connect').addEventListener('click', connectMachine);
+  $('btn-upload').addEventListener('click', () => $('file-scan').click());
+  $('file-scan').addEventListener('change', e => uploadScan(e.target.files[0]));
   $('btn-share').addEventListener('click', openShare);
   $('viewing-as').addEventListener('change', e => {
     app.party = e.target.value;

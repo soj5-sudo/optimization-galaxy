@@ -1,0 +1,633 @@
+{
+  "method": "REINFORCE policy gradient with a moving baseline",
+  "policy": "logistic over a linear state, so every weight is readable",
+  "features": [
+    "flaw_coverage",
+    "rim_proximity",
+    "uncertainty",
+    "clarity_penalty",
+    "size_shortfall",
+    "bias"
+  ],
+  "weights": [
+    -10.20866,
+    -7.58679,
+    -0.97124,
+    -9.51797,
+    -3.64445,
+    7.22412
+  ],
+  "episodes": 60000,
+  "environment": "simulator built from the same evidence the gate sees, replaced by real cut outcomes when a factory supplies them",
+  "comparison": {
+    "learned_policy": 1933.36,
+    "threshold_table": 1311.29,
+    "cut_everything": -547.98,
+    "trials": 6000,
+    "units": "average money per stone, in the same units as stone value"
+  },
+  "history": [
+    {
+      "episode": 500,
+      "mean_reward": -0.0532,
+      "cut_rate": 0.505
+    },
+    {
+      "episode": 1000,
+      "mean_reward": -0.0155,
+      "cut_rate": 0.305
+    },
+    {
+      "episode": 1500,
+      "mean_reward": 0.0188,
+      "cut_rate": 0.335
+    },
+    {
+      "episode": 2000,
+      "mean_reward": 0.0171,
+      "cut_rate": 0.425
+    },
+    {
+      "episode": 2500,
+      "mean_reward": 0.0461,
+      "cut_rate": 0.415
+    },
+    {
+      "episode": 3000,
+      "mean_reward": 0.0101,
+      "cut_rate": 0.43
+    },
+    {
+      "episode": 3500,
+      "mean_reward": 0.0929,
+      "cut_rate": 0.525
+    },
+    {
+      "episode": 4000,
+      "mean_reward": 0.0443,
+      "cut_rate": 0.47
+    },
+    {
+      "episode": 4500,
+      "mean_reward": 0.0619,
+      "cut_rate": 0.405
+    },
+    {
+      "episode": 5000,
+      "mean_reward": 0.0634,
+      "cut_rate": 0.49
+    },
+    {
+      "episode": 5500,
+      "mean_reward": 0.0802,
+      "cut_rate": 0.465
+    },
+    {
+      "episode": 6000,
+      "mean_reward": 0.0448,
+      "cut_rate": 0.465
+    },
+    {
+      "episode": 6500,
+      "mean_reward": 0.0787,
+      "cut_rate": 0.54
+    },
+    {
+      "episode": 7000,
+      "mean_reward": 0.1007,
+      "cut_rate": 0.505
+    },
+    {
+      "episode": 7500,
+      "mean_reward": 0.0774,
+      "cut_rate": 0.51
+    },
+    {
+      "episode": 8000,
+      "mean_reward": 0.1092,
+      "cut_rate": 0.565
+    },
+    {
+      "episode": 8500,
+      "mean_reward": 0.1196,
+      "cut_rate": 0.59
+    },
+    {
+      "episode": 9000,
+      "mean_reward": 0.0954,
+      "cut_rate": 0.565
+    },
+    {
+      "episode": 9500,
+      "mean_reward": 0.0633,
+      "cut_rate": 0.495
+    },
+    {
+      "episode": 10000,
+      "mean_reward": 0.1373,
+      "cut_rate": 0.515
+    },
+    {
+      "episode": 10500,
+      "mean_reward": 0.1002,
+      "cut_rate": 0.48
+    },
+    {
+      "episode": 11000,
+      "mean_reward": 0.0558,
+      "cut_rate": 0.395
+    },
+    {
+      "episode": 11500,
+      "mean_reward": 0.0995,
+      "cut_rate": 0.485
+    },
+    {
+      "episode": 12000,
+      "mean_reward": 0.0731,
+      "cut_rate": 0.465
+    },
+    {
+      "episode": 12500,
+      "mean_reward": 0.0815,
+      "cut_rate": 0.525
+    },
+    {
+      "episode": 13000,
+      "mean_reward": 0.0973,
+      "cut_rate": 0.5
+    },
+    {
+      "episode": 13500,
+      "mean_reward": 0.1339,
+      "cut_rate": 0.49
+    },
+    {
+      "episode": 14000,
+      "mean_reward": 0.1569,
+      "cut_rate": 0.5
+    },
+    {
+      "episode": 14500,
+      "mean_reward": 0.1234,
+      "cut_rate": 0.6
+    },
+    {
+      "episode": 15000,
+      "mean_reward": 0.1405,
+      "cut_rate": 0.5
+    },
+    {
+      "episode": 15500,
+      "mean_reward": 0.1162,
+      "cut_rate": 0.53
+    },
+    {
+      "episode": 16000,
+      "mean_reward": 0.1227,
+      "cut_rate": 0.48
+    },
+    {
+      "episode": 16500,
+      "mean_reward": 0.0929,
+      "cut_rate": 0.535
+    },
+    {
+      "episode": 17000,
+      "mean_reward": 0.1185,
+      "cut_rate": 0.415
+    },
+    {
+      "episode": 17500,
+      "mean_reward": 0.1063,
+      "cut_rate": 0.465
+    },
+    {
+      "episode": 18000,
+      "mean_reward": 0.1279,
+      "cut_rate": 0.51
+    },
+    {
+      "episode": 18500,
+      "mean_reward": 0.0816,
+      "cut_rate": 0.45
+    },
+    {
+      "episode": 19000,
+      "mean_reward": 0.1075,
+      "cut_rate": 0.51
+    },
+    {
+      "episode": 19500,
+      "mean_reward": 0.1195,
+      "cut_rate": 0.565
+    },
+    {
+      "episode": 20000,
+      "mean_reward": 0.1054,
+      "cut_rate": 0.45
+    },
+    {
+      "episode": 20500,
+      "mean_reward": 0.1287,
+      "cut_rate": 0.49
+    },
+    {
+      "episode": 21000,
+      "mean_reward": 0.1083,
+      "cut_rate": 0.505
+    },
+    {
+      "episode": 21500,
+      "mean_reward": 0.1284,
+      "cut_rate": 0.52
+    },
+    {
+      "episode": 22000,
+      "mean_reward": 0.1272,
+      "cut_rate": 0.505
+    },
+    {
+      "episode": 22500,
+      "mean_reward": 0.1152,
+      "cut_rate": 0.565
+    },
+    {
+      "episode": 23000,
+      "mean_reward": 0.0732,
+      "cut_rate": 0.575
+    },
+    {
+      "episode": 23500,
+      "mean_reward": 0.0896,
+      "cut_rate": 0.5
+    },
+    {
+      "episode": 24000,
+      "mean_reward": 0.0937,
+      "cut_rate": 0.485
+    },
+    {
+      "episode": 24500,
+      "mean_reward": 0.1411,
+      "cut_rate": 0.43
+    },
+    {
+      "episode": 25000,
+      "mean_reward": 0.1603,
+      "cut_rate": 0.49
+    },
+    {
+      "episode": 25500,
+      "mean_reward": 0.1248,
+      "cut_rate": 0.54
+    },
+    {
+      "episode": 26000,
+      "mean_reward": 0.1259,
+      "cut_rate": 0.525
+    },
+    {
+      "episode": 26500,
+      "mean_reward": 0.0543,
+      "cut_rate": 0.55
+    },
+    {
+      "episode": 27000,
+      "mean_reward": 0.1792,
+      "cut_rate": 0.49
+    },
+    {
+      "episode": 27500,
+      "mean_reward": 0.1153,
+      "cut_rate": 0.515
+    },
+    {
+      "episode": 28000,
+      "mean_reward": 0.1153,
+      "cut_rate": 0.48
+    },
+    {
+      "episode": 28500,
+      "mean_reward": 0.1049,
+      "cut_rate": 0.52
+    },
+    {
+      "episode": 29000,
+      "mean_reward": 0.1143,
+      "cut_rate": 0.485
+    },
+    {
+      "episode": 29500,
+      "mean_reward": 0.1058,
+      "cut_rate": 0.485
+    },
+    {
+      "episode": 30000,
+      "mean_reward": 0.1602,
+      "cut_rate": 0.47
+    },
+    {
+      "episode": 30500,
+      "mean_reward": 0.0863,
+      "cut_rate": 0.405
+    },
+    {
+      "episode": 31000,
+      "mean_reward": 0.0857,
+      "cut_rate": 0.415
+    },
+    {
+      "episode": 31500,
+      "mean_reward": 0.0636,
+      "cut_rate": 0.445
+    },
+    {
+      "episode": 32000,
+      "mean_reward": 0.1251,
+      "cut_rate": 0.485
+    },
+    {
+      "episode": 32500,
+      "mean_reward": 0.1467,
+      "cut_rate": 0.5
+    },
+    {
+      "episode": 33000,
+      "mean_reward": 0.1638,
+      "cut_rate": 0.45
+    },
+    {
+      "episode": 33500,
+      "mean_reward": 0.1362,
+      "cut_rate": 0.415
+    },
+    {
+      "episode": 34000,
+      "mean_reward": 0.121,
+      "cut_rate": 0.525
+    },
+    {
+      "episode": 34500,
+      "mean_reward": 0.0932,
+      "cut_rate": 0.49
+    },
+    {
+      "episode": 35000,
+      "mean_reward": 0.095,
+      "cut_rate": 0.43
+    },
+    {
+      "episode": 35500,
+      "mean_reward": 0.1186,
+      "cut_rate": 0.41
+    },
+    {
+      "episode": 36000,
+      "mean_reward": 0.1522,
+      "cut_rate": 0.45
+    },
+    {
+      "episode": 36500,
+      "mean_reward": 0.1361,
+      "cut_rate": 0.485
+    },
+    {
+      "episode": 37000,
+      "mean_reward": 0.1293,
+      "cut_rate": 0.515
+    },
+    {
+      "episode": 37500,
+      "mean_reward": 0.0728,
+      "cut_rate": 0.43
+    },
+    {
+      "episode": 38000,
+      "mean_reward": 0.1146,
+      "cut_rate": 0.505
+    },
+    {
+      "episode": 38500,
+      "mean_reward": 0.094,
+      "cut_rate": 0.465
+    },
+    {
+      "episode": 39000,
+      "mean_reward": 0.1631,
+      "cut_rate": 0.395
+    },
+    {
+      "episode": 39500,
+      "mean_reward": 0.1125,
+      "cut_rate": 0.48
+    },
+    {
+      "episode": 40000,
+      "mean_reward": 0.0855,
+      "cut_rate": 0.53
+    },
+    {
+      "episode": 40500,
+      "mean_reward": 0.1326,
+      "cut_rate": 0.54
+    },
+    {
+      "episode": 41000,
+      "mean_reward": 0.0804,
+      "cut_rate": 0.485
+    },
+    {
+      "episode": 41500,
+      "mean_reward": 0.0924,
+      "cut_rate": 0.465
+    },
+    {
+      "episode": 42000,
+      "mean_reward": 0.1478,
+      "cut_rate": 0.435
+    },
+    {
+      "episode": 42500,
+      "mean_reward": 0.0965,
+      "cut_rate": 0.4
+    },
+    {
+      "episode": 43000,
+      "mean_reward": 0.1251,
+      "cut_rate": 0.435
+    },
+    {
+      "episode": 43500,
+      "mean_reward": 0.1457,
+      "cut_rate": 0.505
+    },
+    {
+      "episode": 44000,
+      "mean_reward": 0.1009,
+      "cut_rate": 0.495
+    },
+    {
+      "episode": 44500,
+      "mean_reward": 0.1285,
+      "cut_rate": 0.505
+    },
+    {
+      "episode": 45000,
+      "mean_reward": 0.1708,
+      "cut_rate": 0.535
+    },
+    {
+      "episode": 45500,
+      "mean_reward": 0.148,
+      "cut_rate": 0.52
+    },
+    {
+      "episode": 46000,
+      "mean_reward": 0.1382,
+      "cut_rate": 0.58
+    },
+    {
+      "episode": 46500,
+      "mean_reward": 0.172,
+      "cut_rate": 0.555
+    },
+    {
+      "episode": 47000,
+      "mean_reward": 0.1315,
+      "cut_rate": 0.48
+    },
+    {
+      "episode": 47500,
+      "mean_reward": 0.1097,
+      "cut_rate": 0.505
+    },
+    {
+      "episode": 48000,
+      "mean_reward": 0.0974,
+      "cut_rate": 0.48
+    },
+    {
+      "episode": 48500,
+      "mean_reward": 0.1423,
+      "cut_rate": 0.44
+    },
+    {
+      "episode": 49000,
+      "mean_reward": 0.1155,
+      "cut_rate": 0.5
+    },
+    {
+      "episode": 49500,
+      "mean_reward": 0.164,
+      "cut_rate": 0.525
+    },
+    {
+      "episode": 50000,
+      "mean_reward": 0.0697,
+      "cut_rate": 0.395
+    },
+    {
+      "episode": 50500,
+      "mean_reward": 0.1493,
+      "cut_rate": 0.47
+    },
+    {
+      "episode": 51000,
+      "mean_reward": 0.0892,
+      "cut_rate": 0.425
+    },
+    {
+      "episode": 51500,
+      "mean_reward": 0.1137,
+      "cut_rate": 0.455
+    },
+    {
+      "episode": 52000,
+      "mean_reward": 0.1213,
+      "cut_rate": 0.48
+    },
+    {
+      "episode": 52500,
+      "mean_reward": 0.1416,
+      "cut_rate": 0.445
+    },
+    {
+      "episode": 53000,
+      "mean_reward": 0.1231,
+      "cut_rate": 0.5
+    },
+    {
+      "episode": 53500,
+      "mean_reward": 0.1359,
+      "cut_rate": 0.56
+    },
+    {
+      "episode": 54000,
+      "mean_reward": 0.0633,
+      "cut_rate": 0.515
+    },
+    {
+      "episode": 54500,
+      "mean_reward": 0.1021,
+      "cut_rate": 0.45
+    },
+    {
+      "episode": 55000,
+      "mean_reward": 0.1342,
+      "cut_rate": 0.47
+    },
+    {
+      "episode": 55500,
+      "mean_reward": 0.1165,
+      "cut_rate": 0.43
+    },
+    {
+      "episode": 56000,
+      "mean_reward": 0.1189,
+      "cut_rate": 0.425
+    },
+    {
+      "episode": 56500,
+      "mean_reward": 0.1243,
+      "cut_rate": 0.41
+    },
+    {
+      "episode": 57000,
+      "mean_reward": 0.1714,
+      "cut_rate": 0.5
+    },
+    {
+      "episode": 57500,
+      "mean_reward": 0.1331,
+      "cut_rate": 0.465
+    },
+    {
+      "episode": 58000,
+      "mean_reward": 0.1514,
+      "cut_rate": 0.435
+    },
+    {
+      "episode": 58500,
+      "mean_reward": 0.1142,
+      "cut_rate": 0.425
+    },
+    {
+      "episode": 59000,
+      "mean_reward": 0.1347,
+      "cut_rate": 0.44
+    },
+    {
+      "episode": 59500,
+      "mean_reward": 0.1359,
+      "cut_rate": 0.515
+    },
+    {
+      "episode": 60000,
+      "mean_reward": 0.128,
+      "cut_rate": 0.485
+    }
+  ],
+  "trained_at": "2026-08-25T12:38:15",
+  "wall_seconds": 0.8
+}

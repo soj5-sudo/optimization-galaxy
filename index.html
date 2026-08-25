@@ -40,6 +40,9 @@
       </select>
     </div>
     <div class="og-avatar-group" id="roster" aria-label="People in this session"></div>
+    <button class="og-btn og-btn--secondary og-btn--sm" id="btn-connect">Connect Galaxy machine</button>
+    <button class="og-btn og-btn--secondary og-btn--sm" id="btn-upload">Upload a scan</button>
+    <input type="file" id="file-scan" accept="image/*" hidden>
     <button class="og-btn og-btn--secondary og-btn--sm" id="btn-share">Share session</button>
     <button class="og-btn og-btn--primary og-btn--sm" id="btn-run">Run shipment</button>
   </div>
@@ -105,6 +108,11 @@
     </div>
   </aside>
 
+</div>
+
+<div class="app-film" id="film" hidden>
+  <video id="film-video" playsinline muted preload="auto"></video>
+  <p class="app-film__tag" id="film-tag">Galaxy machine, scanning the rough</p>
 </div>
 
 <div class="og-drawer" id="share-drawer" hidden>

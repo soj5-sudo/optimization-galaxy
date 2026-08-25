@@ -17,6 +17,16 @@ const CNN = (() => {
   let model = null;
   let status = { loaded: false, reason: 'not loaded yet' };
 
+  // Where we sit on the precision and recall curve.
+  //
+  // At an even split the classifier marks far too much of the stone, and a gate
+  // fed that noise holds every stone, which is useless. Calling a patch flawed
+  // only when the model is well past undecided trades a little recall for a lot
+  // of precision. That is the right trade here: a faint mark we miss shows up in
+  // the classical detector anyway, whereas a stone wrongly held is a stone the
+  // factory does not cut.
+  const FLAW_THRESHOLD = 0.72;
+
   async function load(url = 'ml/artifacts/weights.json') {
     try {
       const res = await fetch(url, { cache: 'no-store' });
@@ -199,7 +209,7 @@ const CNN = (() => {
         inside[gy * gridW + gx] = 1;
         scored++;
         confSum += Math.max(pFlaw, 1 - pFlaw);   // how decisive the call was
-        if (pFlaw > 0.5) flawy++;
+        if (pFlaw > FLAW_THRESHOLD) flawy++;
       }
     }
 
@@ -241,8 +251,8 @@ const CNN = (() => {
         if (isIn) {
           insideCells++;
           confSum += Math.max(pFlaw, 1 - pFlaw);
-          if (pFlaw > 0.5) flawCells++;
-        } else if (pFlaw > 0.5) {
+          if (pFlaw > FLAW_THRESHOLD) flawCells++;
+        } else if (pFlaw > FLAW_THRESHOLD) {
           // distance from this flaw cell to the nearest edge of the outline
           for (let i = 0; i < stonePoly.length; i++) {
             const [x1, y1] = stonePoly[i], [x2, y2] = stonePoly[(i + 1) % stonePoly.length];
@@ -277,8 +287,8 @@ const CNN = (() => {
         const idx = gy * gridW + gx;
         if (!inside[idx]) continue;
         const v = probs[idx];
-        if (v < 0.5) continue;
-        const a = Math.min(0.55, (v - 0.5) * 1.1);
+        if (v < FLAW_THRESHOLD) continue;
+        const a = Math.min(0.55, (v - FLAW_THRESHOLD) * 1.6);
         ctx.fillStyle = `rgba(217, 45, 32, ${a})`;
         ctx.fillRect(gx * stride + half - stride / 2, gy * stride + half - stride / 2, stride, stride);
       }

@@ -190,3 +190,25 @@
 .app-verdict--good .app-verdict__big { color: var(--og-text-success); }
 .app-verdict--bad .app-verdict__big { color: var(--og-text-danger); }
 .app-verdict--hold .app-verdict__big { color: var(--og-text-warning); }
+
+/* the machine feed, shown while the scan comes off */
+.app-film {
+  position: fixed; inset: 0; z-index: 210;
+  background: #000;
+  display: flex; align-items: center; justify-content: center;
+  animation: film-in 260ms var(--og-ease-out);
+}
+.app-film[hidden] { display: none; }
+.app-film.is-out { opacity: 0; transition: opacity 340ms var(--og-ease-standard); }
+@keyframes film-in { from { opacity: 0; } to { opacity: 1; } }
+.app-film video {
+  max-height: 82vh; max-width: 92vw;
+  border: 1px solid var(--og-border);
+  border-radius: var(--og-radius-md);
+}
+.app-film__tag {
+  position: absolute; top: 26px; left: 50%; transform: translateX(-50%);
+  font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--og-text-tertiary);
+}
+@media (prefers-reduced-motion: reduce) { .app-film { animation: none; } }

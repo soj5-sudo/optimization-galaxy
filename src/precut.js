@@ -29,6 +29,52 @@ const PreCut = (() => {
 
   const CLARITY_ORDER = ['FL', 'IF', 'VVS1', 'VVS2', 'VS1', 'VS2', 'SI1', 'SI2', 'I1', 'I2', 'I3'];
 
+  // The learned policy, if training has produced one. It replaces the fixed
+  // thresholds with weights fitted against outcomes, and the same five pieces
+  // of evidence go in either way, so the two can be compared side by side.
+  let POLICY_NET = null;
+
+  async function loadPolicy(url = 'ml/artifacts/policy.json') {
+    try {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) return null;
+      const p = await res.json();
+      if (Array.isArray(p.weights) && Array.isArray(p.features)) POLICY_NET = p;
+      return POLICY_NET;
+    } catch (e) { return null; }
+  }
+
+  function policyFeatures(stone, evidence) {
+    const cov = Number(evidence.flawCoverageInside || 0);
+    const near = evidence.nearestFlawMm;
+    const rim = (near === null || near === undefined)
+      ? 0 : Math.max(0, (POLICY.girdleClearanceMm - Number(near)) / POLICY.girdleClearanceMm);
+    const conf = evidence.modelConfidence == null ? 0.5 : Number(evidence.modelConfidence);
+    const ci = CLARITY_ORDER.indexOf(String(stone.clarity).toUpperCase());
+    const floor = CLARITY_ORDER.indexOf(POLICY.clarityFloor);
+    const clarityPen = Math.max(0, (ci === -1 ? 7 : ci) - floor) / 3;
+    const sizeShort = Math.max(0, (POLICY.minCarat - stone.carat) / POLICY.minCarat);
+    return [
+      Math.min(cov / 0.06, 2),
+      rim,
+      (1 - conf) * 2,
+      clarityPen,
+      sizeShort,
+      1,
+    ];
+  }
+
+  // probability the learned policy would cut this stone
+  function policyCutProbability(stone, evidence) {
+    if (!POLICY_NET) return null;
+    const x = policyFeatures(stone, evidence);
+    const w = POLICY_NET.weights;
+    let z = 0;
+    for (let i = 0; i < Math.min(x.length, w.length); i++) z += x[i] * w[i];
+    z = Math.max(-30, Math.min(30, z));
+    return 1 / (1 + Math.exp(-z));
+  }
+
   function clarityRank(g) {
     const i = CLARITY_ORDER.indexOf(String(g).toUpperCase());
     return i === -1 ? CLARITY_ORDER.length - 1 : i;
@@ -90,10 +136,23 @@ const PreCut = (() => {
 
     const risk = Math.min(1, Object.values(components).reduce((a, b) => a + b, 0));
 
+    // The learned policy decides when it is available. The threshold risk is
+    // still computed and shown, because a factory manager is owed a reason in
+    // language they can push back on, not just a probability.
+    const pCut = policyCutProbability(stone, evidence);
     let decision;
-    if (risk >= policy.maxRiskToAccept) decision = 'reject';
-    else if (risk >= policy.reviewBand[0]) decision = 'review';
-    else decision = 'accept';
+    let decidedBy;
+    if (pCut !== null) {
+      decidedBy = 'learned policy';
+      if (pCut > 0.62) decision = 'accept';
+      else if (pCut > 0.38) decision = 'review';
+      else decision = 'reject';
+    } else {
+      decidedBy = 'threshold table';
+      if (risk >= policy.maxRiskToAccept) decision = 'reject';
+      else if (risk >= policy.reviewBand[0]) decision = 'review';
+      else decision = 'accept';
+    }
 
     // what the factory saves by not cutting a stone that comes back
     const valueAtRisk = Math.round((stone.value || 0) * risk);
@@ -104,7 +163,9 @@ const PreCut = (() => {
       risk: Math.round(risk * 1000) / 1000,
       components: Object.fromEntries(Object.entries(components).map(([k, v]) => [k, Math.round(v * 1000) / 1000])),
       reasons: reasons.length ? reasons : ['Nothing in the scan or the plan trips a reject rule.'],
-      policyVersion: policy.version,
+      decidedBy,
+      cutProbability: pCut === null ? null : Math.round(pCut * 1000) / 1000,
+      policyVersion: POLICY_NET ? (POLICY_NET.method || 'learned policy') : policy.version,
       valueAtRisk,
       evidence: {
         flawCoverageInside: coverage,
@@ -147,7 +208,8 @@ const PreCut = (() => {
     };
   }
 
-  return { assess, gate, POLICY, CLARITY_ORDER };
+  return { assess, gate, loadPolicy, policyCutProbability, POLICY, CLARITY_ORDER,
+           get learnedPolicy() { return POLICY_NET; } };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = PreCut;
