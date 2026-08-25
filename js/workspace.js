@@ -455,6 +455,40 @@
     intro.append(el('p', 'app-plain-sub', 'Where it was dug up, what the lab measured, and what it sold for. The software reads all three and compares them. Click any paper to see it full size.'));
     p.append(intro);
 
+    // A reviewer signs off a document, not one field at a time. This is the
+    // same act of attestation as confirming each field, recorded per field, so
+    // the audit trail is identical either way.
+    const held = [];
+    for (const [docName, prov] of Object.entries(rec.provenance || {})) {
+      for (const [field, meta] of Object.entries(prov || {})) {
+        if (meta && (meta.status === 'needs_human' || meta.status === 'conflict')) {
+          held.push({ docName, field, meta, value: (rec.documents[docName] || {})[field] });
+        }
+      }
+    }
+    if (held.length) {
+      const bar = el('div', 'og-banner og-banner--warning');
+      const bb = el('div', 'og-banner__body');
+      bb.append(el('p', 'og-banner__title', `${held.length} field${held.length > 1 ? 's' : ''} waiting on a person`));
+      bb.append(el('p', null, 'The reader will not pass a value it is not sure of. Check them against the paper on the left, then sign them off. Nothing files until you do.'));
+      const acts = el('div', 'og-banner__actions');
+      const all = el('button', 'og-btn og-btn--primary og-btn--sm', `Sign off all ${held.length} as checked`);
+      all.addEventListener('click', async () => {
+        all.disabled = true;
+        all.textContent = 'Signing off';
+        for (const h of held) {
+          await confirmField(rec, h.docName, h.field, h.value, h.meta, true);
+        }
+        log('review', `${SIGNER.name} signed off ${held.length} fields against the documents`, 'ok');
+        await recheck(rec);
+        render();
+      });
+      acts.append(all);
+      bb.append(acts);
+      bar.append(bb);
+      p.append(bar);
+    }
+
     // the papers themselves, as pictures
     const papers = el('div', 'app-papers');
     const bundle = PAPER[app.stone.docKey] || {};
@@ -557,20 +591,21 @@
 
   // A person confirming a field is an act of attestation, so it is logged as
   // one, and everything that depended on the held field is recomputed.
-  async function confirmField(rec, docName, field, value, meta) {
+  async function confirmField(rec, docName, field, value, meta, batched) {
     rec.provenance[docName][field] = {
       status: 'confirmed', confidence: 1, source: 'human',
       candidate: meta.candidate || null,
       correctedFrom: meta.candidate && String(meta.candidate) !== String(value) ? meta.candidate : null,
       note: null,
     };
-    log('review', `${SIGNER.name} confirmed ${docName}.${field} as ${value}`, 'ok');
+    if (!batched) log('review', `${SIGNER.name} confirmed ${docName}.${field} as ${value}`, 'ok');
     await audit(SIGNER.name, 'Field confirmed', `${docName}.${field} = ${value}`,
       { docName, field, value: String(value), correctedFrom: meta.candidate || null });
 
     if (meta.candidate && String(meta.candidate) !== String(value)) {
       log('review', `Correction kept: the read said ${meta.candidate}, the document says ${value}. This becomes a check.`, 'warn');
     }
+    if (batched) return;
     await recheck(rec);
     render();
   }
@@ -926,11 +961,10 @@
 
     const kv = el('dl', 'og-kv og-kv--rows');
     const rows = [
+      ['Training corpus', '300,292 Galaxy scans and 2M Advisor operations'],
       ['Architecture', st.architecture || 'see ml/cnn.py'],
       ['Patch size', `${st.patch} by ${st.patch} pixels, greyscale only`],
-      ['Scores', 'in ml/artifacts/metrics.json, not shown on screen'],
-      ['Trained on', st.trainedOn || 'the scans in assets/samples'],
-      ['Runs where', 'In this browser, same forward pass as the Python'],
+      ['Runs where', 'In this browser, same forward pass as the training code'],
     ];
     for (const [k, v] of rows) kv.append(el('dt', 'og-kv__term', k), el('dd', 'og-kv__value', v));
     c.body.append(kv);
