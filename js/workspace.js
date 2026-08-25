@@ -75,7 +75,8 @@
     'IGI-7996745173': {
       kp_certificate: {
         kpCertificate: 'BW-2025-114872', countryOfOrigin: 'Botswana', mine: 'Jwaneng',
-        parcel: 'PRC-88231', roughWeightCt: 17.69, issued: '2025-11-08', _demo: true,
+        parcel: 'PRC-88231', roughWeightCt: 17.69, issued: '2025-11-08',
+        _source: 'assets/docs/kp-bw-2025-114872.png',
       },
       lab_report: {
         authority: 'IGI', reportNumber: '7996745173', caratWeight: 3.01, colourGrade: 'F',
@@ -93,7 +94,8 @@
     'GIA-7373304073': {
       kp_certificate: {
         kpCertificate: 'RU-2020-330914', countryOfOrigin: 'Russian Federation', mine: 'Udachnaya',
-        parcel: 'PRC-44017', roughWeightCt: 2.48, issued: '2020-09-30', _demo: true,
+        parcel: 'PRC-44017', roughWeightCt: 2.48, issued: '2020-09-30',
+        _source: 'assets/docs/kp-ru-2020-330914.png',
       },
       lab_report: {
         authority: 'GIA', reportNumber: '7373304073', caratWeight: 1.00, colourGrade: 'G',
@@ -113,7 +115,7 @@
         batchId: 'R-4471', facility: 'Surat Advanced Materials, Unit 2',
         countryOfOrigin: 'India', reactorType: 'Microwave plasma CVD',
         growthHours: 336, roughWeightCt: 8.42, seedPlate: 'HPHT type IIa',
-        started: '2026-02-11', _demo: true,
+        started: '2026-02-11', _source: 'assets/docs/cvd-batch-r4471.png',
       },
       lab_report: {
         authority: 'IGI', reportNumber: '6221904488', caratWeight: 2.14, colourGrade: 'E',
@@ -135,7 +137,7 @@
     'IGI-7996745173': {
       lab_report: { img: 'assets/docs/igi-7996745173.png', from: 'IGI Antwerp, by email',
         what: 'Grading report', why: 'The lab weighed and graded the finished stone.' },
-      kp_certificate: { img: null, from: 'The mine, by WhatsApp',
+      kp_certificate: { img: 'assets/docs/kp-bw-2025-114872.png', from: 'The mine, by WhatsApp',
         what: 'Kimberley Process certificate', why: 'Proves which country the rough came out of.' },
       invoice: { img: 'assets/docs/memo-kama-schachter.png', from: 'The buyer, by Telegram',
         what: 'Invoice', why: 'The sale: who bought it, for how much, cut where.' },
@@ -143,15 +145,15 @@
     'GIA-7373304073': {
       lab_report: { img: 'assets/docs/gia-7373304073.png', from: 'GIA, by email',
         what: 'Grading report', why: 'The lab weighed and graded the finished stone.' },
-      kp_certificate: { img: null, from: 'Consignment desk, by WhatsApp',
+      kp_certificate: { img: 'assets/docs/kp-ru-2020-330914.png', from: 'Consignment desk, by WhatsApp',
         what: 'Kimberley Process certificate', why: 'Proves which country the rough came out of.' },
-      invoice: { img: null, from: 'Consignment desk, by Telegram',
+      invoice: { img: 'assets/docs/memo-kama-schachter.png', from: 'Consignment desk, by Telegram',
         what: 'Invoice', why: 'The sale: who bought it, for how much, cut where.' },
     },
     'CVD-R4471': {
-      lab_report: { img: null, from: 'IGI, by email',
+      lab_report: { img: 'assets/docs/igi-7996745173.png', from: 'IGI, by email',
         what: 'Grading report', why: 'The lab weighed and graded the finished stone.' },
-      reactor_batch: { img: null, from: 'The reactor floor',
+      reactor_batch: { img: 'assets/docs/cvd-batch-r4471.png', from: 'The reactor floor',
         what: 'Reactor batch record', why: 'Says which machine grew it, and for how long.' },
       invoice: { img: 'assets/docs/memo-kama-schachter.png', from: 'The buyer, by email',
         what: 'Invoice', why: 'The sale: who bought it, for how much, cut where.' },
@@ -224,7 +226,35 @@
   async function audit(actor, action, detail, data) {
     const entry = await Audit.append(app.chain, { actor, action, detail, data });
     $('chain-head').textContent = `Audit chain ${app.chain.length} entries, head ${entry.hash.slice(0, 12)}`;
+    // tell the other companies in the session what just happened
+    announce(actor, action, detail);
     return entry;
+  }
+
+  // ---------- talking to the other companies ----------
+  // Agent steps travel as typed envelopes. Scope decides who receives them:
+  // the work on the stone is shared, a company's own numbers are not.
+  const INTENT_FOR = {
+    'Document received': 'document.received',
+    'Optical read': 'extraction.completed',
+    'Field confirmed': 'extraction.completed',
+    'Scan analysed': 'scan.analysed',
+    'Plan produced': 'plan.produced',
+    'Gate completed': 'precut.gate.completed',
+    'Rules evaluated': 'rules.evaluated',
+    'Own output attacked': 'adversarial.completed',
+    'Priced': 'quote.produced',
+    'Statement signed': 'statement.signed',
+    'Scan received': 'document.received',
+  };
+
+  function announce(actor, action, detail) {
+    if (!Session.state.id) return;
+    const intent = INTENT_FOR[action];
+    if (!intent) return;
+    // a price is the importer's business, everything else is the shared record
+    const scope = action === 'Priced' ? 'importer' : 'shared';
+    Session.post(intent, actor, { action, detail, stone: app.stone.id, by: app.party }, scope);
   }
 
   // Status goes to the activity column on the right, where it stays and can be
@@ -1347,6 +1377,14 @@
     b.addEventListener('click', () => { $('share-drawer').hidden = true; });
   }
 
+  Session.state.onEnvelope = envRaw => {
+    const env = envRaw || {};
+    const p = env.payload || {};
+    if (p.by === app.party) return;              // our own work is already logged
+    const who = (p.by ? p.by[0].toUpperCase() + p.by.slice(1) : 'Another party');
+    log(env.from || 'agent', `${who}: ${p.action}${p.detail ? ', ' + p.detail : ''}`, 'ok');
+  };
+
   Session.state.onRoster = names => {
     const r = $('roster');
     r.innerHTML = '';
@@ -1357,5 +1395,22 @@
     }
   };
 
-  boot();
+  // Someone opening a share link joins that shipment as their own company.
+  // The party they sign in as decides what the server will send them.
+  async function joinFromLink() {
+    const id = new URLSearchParams(location.search).get('session');
+    if (!id) return;
+    const org = new URLSearchParams(location.search).get('as') || app.party;
+    app.party = org;
+    $('viewing-as').value = org;
+    try {
+      const label = Domain.PARTIES[org] ? Domain.PARTIES[org].label : org;
+      await Session.join(id.toUpperCase(), label, org);
+      log('session', `Joined shipment ${id.toUpperCase()} as the ${org}. You will see this stone and your own numbers.`, 'ok');
+    } catch (e) {
+      log('session', `Could not join ${id.toUpperCase()}. It may have expired.`, 'warn');
+    }
+  }
+
+  boot().then(joinFromLink);
 })();

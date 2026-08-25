@@ -38,18 +38,40 @@ const Extract = (() => {
     return String(text || '').replace(/\r/g, '').replace(/[ \t]+/g, ' ');
   }
 
-  // find a value on the same line as a label, or on the line after it
-  function nearLabel(text, labelPatterns, valuePattern) {
+  // A trade document is usually two columns, and optical character recognition
+  // flattens them onto one line: the left label, then the right label, then on
+  // the next line the left value followed by the right value. So a naive read
+  // of "the text after the label" returns the neighbouring column's heading.
+  //
+  // Two rules deal with that. A run of capitals is a heading, never a value.
+  // And when a label sits at the start of its line, its value sits at the start
+  // of the next line, so the match is anchored there rather than taken from
+  // anywhere on the row.
+  const LOOKS_LIKE_HEADING = v => /^[A-Z][A-Z ()./]{3,}$/.test(String(v).trim());
+
+  function nearLabel(text, labelPatterns, valuePattern, opts = {}) {
     const lines = norm(text).split('\n');
     for (let i = 0; i < lines.length; i++) {
       for (const lp of labelPatterns) {
-        if (!lp.test(lines[i])) continue;
-        const here = lines[i].replace(lp, ' ');
+        const m0 = lines[i].match(lp);
+        if (!m0) continue;
+        const labelAtStart = m0.index <= 1;
+
+        // same line, after the label
+        const here = lines[i].slice(m0.index + m0[0].length);
         let m = here.match(valuePattern);
-        if (m) return { value: m[0], line: i, distance: 0 };
+        if (m && !LOOKS_LIKE_HEADING(m[0])) return { value: m[0], line: i, distance: 0 };
+
+        // next line: for a left column label, anchor at the start of the row
         if (i + 1 < lines.length) {
-          m = lines[i + 1].match(valuePattern);
-          if (m) return { value: m[0], line: i + 1, distance: 1 };
+          const next = lines[i + 1];
+          if (labelAtStart && opts.anchorStart !== false) {
+            const anchored = new RegExp('^\\s*(?:' + valuePattern.source + ')', valuePattern.flags.replace('g', ''));
+            const am = next.match(anchored);
+            if (am && !LOOKS_LIKE_HEADING(am[0])) return { value: am[0].trim(), line: i + 1, distance: 1 };
+          }
+          m = next.match(valuePattern);
+          if (m && !LOOKS_LIKE_HEADING(m[0])) return { value: m[0], line: i + 1, distance: 1 };
         }
       }
     }
@@ -203,6 +225,70 @@ const Extract = (() => {
     return { docType: 'assay_certificate', fields: out };
   }
 
+  function parseKpCertificate(text) {
+    const t = norm(text);
+    const out = {};
+
+    let num = nearLabel(t, [/certificate\s*(number|no\.?)/i], /[A-Z]{2}[-\s]?[0-9]{4}[-\s]?[0-9]{4,8}/i);
+    if (!num) num = anywhere(t, /\b[A-Z]{2}-[0-9]{4}-[0-9]{4,8}\b/);
+    out.kpCertificate = num
+      ? field('kpCertificate', num.value.replace(/\s/g, ''), Math.min(0.55, OCR_CONFIDENCE_CEILING), 'ocr')
+      : field('kpCertificate', null, 0, 'ocr');
+
+    const origin = nearLabel(t, [/country\s*of\s*origin/i], /[A-Z][a-z]+(?: [A-Z][a-z]+){0,3}/);
+    out.countryOfOrigin = origin && VALID.country(origin.value.trim())
+      ? field('countryOfOrigin', origin.value.trim(), 0.58, 'ocr')
+      : field('countryOfOrigin', null, 0, 'ocr');
+
+    const mine = nearLabel(t, [/mine\s*of\s*origin/i], /[A-Z][a-z]+(?:,? [A-Z][a-z]+){0,2}/);
+    out.mine = mine ? field('mine', mine.value.trim(), 0.56, 'ocr') : field('mine', null, 0, 'ocr');
+
+    const parcel = nearLabel(t, [/parcel\s*(reference|no|number)/i], /[A-Z]{2,4}[-\s]?[0-9]{3,8}/i);
+    out.parcel = parcel
+      ? field('parcel', parcel.value.replace(/\s/g, ''), 0.5, 'ocr')
+      : field('parcel', null, 0, 'ocr');
+
+    const wt = nearLabel(t, [/total\s*carat\s*weight/i, /carat\s*weight/i], /[0-9]{1,4}[.,][0-9]{1,2}/);
+    if (wt) {
+      const v = parseFloat(String(wt.value).replace(',', '.'));
+      out.roughWeightCt = VALID.carat(v)
+        ? field('roughWeightCt', v, 0.56, 'ocr')
+        : field('roughWeightCt', null, 0, 'ocr');
+    } else {
+      out.roughWeightCt = field('roughWeightCt', null, 0, 'ocr');
+    }
+    return { docType: 'kp_certificate', fields: out };
+  }
+
+  function parseReactorBatch(text) {
+    const t = norm(text);
+    const out = {};
+    const batch = nearLabel(t, [/batch\s*(identifier|id|no|number)/i], /[A-Z]?-?[0-9]{3,6}/i);
+    out.batchId = batch ? field('batchId', batch.value.trim(), 0.52, 'ocr') : field('batchId', null, 0, 'ocr');
+
+    const method = /microwave\s*plasma|mpcvd/i.test(t) ? 'cvd'
+      : /hpht|belt\s*press|cubic\s*press/i.test(t) ? 'hpht' : null;
+    out.growthMethod = field('growthMethod', method, method ? 0.6 : 0, 'ocr');
+
+    const fac = t.split('\n').map(l => l.trim())
+      .find(l => /materials|laborator|unit\s*\d|facility/i.test(l) && l.length < 60);
+    out.facility = fac ? field('facility', fac, 0.5, 'ocr') : field('facility', null, 0, 'ocr');
+
+    const wt = nearLabel(t, [/grown\s*weight/i, /weight/i], /[0-9]{1,3}[.,][0-9]{1,2}/);
+    if (wt) {
+      const v = parseFloat(String(wt.value).replace(',', '.'));
+      out.roughWeightCt = VALID.carat(v) ? field('roughWeightCt', v, 0.55, 'ocr') : field('roughWeightCt', null, 0, 'ocr');
+    } else {
+      out.roughWeightCt = field('roughWeightCt', null, 0, 'ocr');
+    }
+
+    const country = nearLabel(t, [/country\s*of\s*production/i], /[A-Za-z][A-Za-z ]{2,30}/);
+    out.countryOfOrigin = country && VALID.country(country.value.trim())
+      ? field('countryOfOrigin', country.value.trim(), 0.55, 'ocr')
+      : field('countryOfOrigin', null, 0, 'ocr');
+    return { docType: 'reactor_batch', fields: out };
+  }
+
   // ---------- entry point ----------
 
   function classify(text) {
@@ -221,6 +307,8 @@ const Extract = (() => {
     if (docType === 'lab_report') parsed = parseLabReport(text);
     else if (docType === 'invoice') parsed = parseInvoice(text);
     else if (docType === 'assay_certificate') parsed = parseAssay(text);
+    else if (docType === 'kp_certificate') parsed = parseKpCertificate(text);
+    else if (docType === 'reactor_batch') parsed = parseReactorBatch(text);
     else parsed = { docType, fields: {} };
 
     const fields = parsed.fields;
