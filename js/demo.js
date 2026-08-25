@@ -240,18 +240,24 @@ const Demo = (() => {
 
   // opens the shared session and puts the desk on screen before the film runs
   async function openSession(ui) {
-    if (!Session.state.id) {
-      const id = await Session.create();
-      await Session.join(id, 'Soham (Source)');
+    // The desk always appears. Live sharing needs the local server, so when it
+    // is not there (a static host, for instance) the run carries on regardless.
+    try {
+      if (!Session.state.id) {
+        const id = await Session.create();
+        await Session.join(id, 'Soham (Source)');
+      }
+      const info = await Session.hostInfo();
+      const urls = Session.shareUrls(Session.state.id, info);
+      const link = document.getElementById('demo-link');
+      if (link) { link.textContent = urls[0]; link.parentElement.hidden = false; }
+      for (const p of DESK) {
+        if (p.name !== 'Soham') await joinDeskMember(p);
+      }
+    } catch (e) {
+      console.info('Live sharing is off, the run continues without it');
     }
-    const info = await Session.hostInfo();
-    const urls = Session.shareUrls(Session.state.id, info);
-    const link = document.getElementById('demo-link');
-    if (link) { link.textContent = urls[0]; link.parentElement.hidden = false; }
-    for (const p of DESK) {
-      if (p.name !== 'Soham') await joinDeskMember(p);
-      deskCard(p, ui);
-    }
+    for (const p of DESK) deskCard(p, ui);
     ui.log('SESSION', 'Wasi, Anik and Soham are on this record together');
   }
 
@@ -307,11 +313,13 @@ const Demo = (() => {
     const id = Session.state.id;
     if (!id) return;
     const clientId = 'desk-' + person.name.toLowerCase();
-    await fetch(`/api/session/${id}/join`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ clientId, name: `${person.name} (${person.role})` }),
-    });
+    try {
+      await fetch(`/api/session/${id}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientId, name: `${person.name} (${person.role})` }),
+      });
+    } catch (e) { /* sharing is optional */ }
   }
 
   function deskCard(person, ui) {

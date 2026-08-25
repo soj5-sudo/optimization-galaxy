@@ -1,0 +1,59 @@
+{
+  "id": "ftc_disclosure",
+  "version": "2018.07",
+  "instrument": "FTC Jewelry Guides, 16 CFR 23.12",
+  "statement": "Laboratory grown disclosure",
+  "effective_from": "2018-07-24",
+  "applies_to_growth": ["cvd", "hpht"],
+  "scope": {
+    "min_carat": 0,
+    "hs_codes": ["7104.91", "7104.99"],
+    "note": "Any laboratory grown stone offered for sale, at any size."
+  },
+  "checks": [
+    {
+      "id": "growth_disclosed",
+      "label": "Growth method stated",
+      "plain": "The paperwork says plainly that the stone was grown, and how.",
+      "field": "lab_report.growthMethod",
+      "in": ["cvd", "hpht"],
+      "on_fail": "block"
+    },
+    {
+      "id": "facility_named",
+      "label": "Producing facility named",
+      "plain": "We know which reactor grew it.",
+      "field": "reactor_batch.facility",
+      "present": true,
+      "on_fail": "block"
+    },
+    {
+      "id": "no_mined_implication",
+      "label": "No wording implying it was mined",
+      "plain": "Nothing on the invoice suggests the stone came out of the ground.",
+      "field": "invoice.declaredOrigin",
+      "not_matching": "mine|mined|kimberley",
+      "on_fail": "block"
+    },
+    {
+      "id": "batch_traceable",
+      "label": "Batch traces to the stone",
+      "plain": "The reactor batch and the grading report agree on weight.",
+      "compare": ["reactor_batch.roughWeightCt", "lab_report.caratWeight"],
+      "expression": "lab <= rough",
+      "on_fail": "warn"
+    }
+  ],
+  "evidence_required": [
+    "Statement that the diamond is laboratory grown",
+    "Growth method: CVD or HPHT, and the reactor type",
+    "Producing facility and country",
+    "Batch identifier and growth run dates"
+  ],
+  "penalties": {
+    "undisclosed_synthetic": {
+      "measure": "FTC deceptive practices exposure, plus customer restitution and returns",
+      "note": "Civil penalty exposure is per violation and is set by the Commission."
+    }
+  }
+}

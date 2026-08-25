@@ -1,0 +1,95 @@
+{
+  "id": "eu_dds",
+  "version": "2026.01",
+  "instrument": "Council Regulation (EU) 833/2014 as amended by (EU) 2023/2878",
+  "statement": "Due Diligence Statement",
+  "effective_from": "2026-01-01",
+  "applies_to_growth": ["natural"],
+  "scope": {
+    "min_carat": 0.5,
+    "hs_codes": ["7102.31", "7102.39"],
+    "note": "Natural polished at or above the threshold entering the customs territory."
+  },
+  "checks": [
+    {
+      "id": "weight_agreement",
+      "label": "Weight agrees across documents",
+      "plain": "The lab report and the invoice describe the same stone.",
+      "compare": ["lab_report.caratWeight", "invoice.caratWeight"],
+      "tolerance": 0.005,
+      "on_fail": "block"
+    },
+    {
+      "id": "lab_reference",
+      "label": "Invoice names the report we hold",
+      "plain": "The invoice points at this exact grading report.",
+      "compare": ["lab_report.reportNumber", "invoice.labReportNumber"],
+      "on_fail": "block"
+    },
+    {
+      "id": "shape_agreement",
+      "label": "Shape agrees",
+      "plain": "Both papers describe the same cut.",
+      "compare": ["lab_report.shape", "invoice.shape"],
+      "on_fail": "warn"
+    },
+    {
+      "id": "origin_agreement",
+      "label": "Origin matches the mining certificate",
+      "plain": "The country on the invoice is the country on the certificate.",
+      "compare": ["kp_certificate.countryOfOrigin", "invoice.declaredOrigin"],
+      "on_fail": "block",
+      "penalty_reference": "wrong_origin"
+    },
+    {
+      "id": "sanctions_screen",
+      "label": "Not a sanctioned source",
+      "plain": "The stone did not come out of a country under sanction.",
+      "field": "kp_certificate.countryOfOrigin",
+      "not_in": ["Russian Federation", "Russia", "Belarus"],
+      "on_fail": "block",
+      "penalty_reference": "sanctioned"
+    },
+    {
+      "id": "warranty_chain",
+      "label": "System of Warranties wording present",
+      "plain": "Every invoice in the chain carries the warranty sentence.",
+      "field": "invoice.warrantyClause",
+      "equals": "present",
+      "on_fail": "block"
+    },
+    {
+      "id": "yield_plausible",
+      "label": "Weights make sense",
+      "plain": "You cannot get more polished out than the rough could hold.",
+      "expression": "recovered_ct <= rough_ct AND yield_pct <= 60",
+      "on_fail": "block"
+    },
+    {
+      "id": "threshold",
+      "label": "Filing needed",
+      "plain": "Natural and at or above half a carat, so the EU requires this filing.",
+      "expression": "growth == natural AND carat >= 0.5",
+      "on_fail": "info"
+    }
+  ],
+  "evidence_required": [
+    "Importer identity and EORI number",
+    "Goods line: HS code, piece count, total carats, customs value",
+    "Country of mining origin",
+    "Declaration that the goods are not of Russian Federation origin",
+    "Declaration that reasonable steps were taken and that no aggregation applies",
+    "Named authorised signatory, place and date of signing"
+  ],
+  "penalties": {
+    "wrong_origin": {
+      "measure": "up to 40 percent of shipment value plus seizure of the goods",
+      "pct_of_shipment": 40
+    },
+    "sanctioned": {
+      "measure": "USD 377,700 per violation or twice the transaction value, whichever is greater",
+      "per_violation_usd": 377700,
+      "or_twice_transaction": true
+    }
+  }
+}

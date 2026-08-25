@@ -1,0 +1,192 @@
+/* workspace.css
+   The handful of layout rules specific to this product, layered on top of the
+   design system. Everything here consumes design system tokens only. */
+
+.og-app { min-height: 100vh; display: flex; flex-direction: column; }
+
+.app-field-inline { display: flex; align-items: center; gap: var(--og-space-2); margin: 0; }
+.app-field-inline .og-label { margin: 0; white-space: nowrap; }
+
+.app-panels { flex: 1; min-height: 0; overflow-y: auto; padding: var(--og-space-6); }
+
+.og-tabpanel { display: none; }
+.og-tabpanel.is-active { display: block; }
+
+.app-rail-foot { margin-top: auto; }
+
+/* the scan viewer: image with the model overlay on top of it */
+.app-scan { position: relative; display: inline-block; line-height: 0; }
+.app-scan img, .app-scan canvas { display: block; max-width: 100%; border-radius: var(--og-radius-sm); }
+.app-scan canvas { position: absolute; inset: 0; }
+
+.app-scan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--og-space-4);
+  align-items: start;
+}
+
+/* feature maps from the network, small and side by side */
+.app-maps { display: flex; gap: var(--og-space-3); flex-wrap: wrap; }
+.app-map { text-align: center; }
+.app-map canvas {
+  border: 1px solid var(--og-border);
+  border-radius: var(--og-radius-sm);
+  image-rendering: pixelated;
+  background: var(--og-grey-100);
+}
+.app-map span {
+  display: block;
+  margin-top: var(--og-space-1);
+  font-size: 11px;
+  color: var(--og-text-tertiary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* a field row that shows where the value came from and how sure we are */
+.app-field-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) minmax(120px, 1.2fr) auto auto;
+  gap: var(--og-space-3);
+  align-items: center;
+  padding: var(--og-space-2) 0;
+  border-bottom: 1px solid var(--og-border);
+}
+.app-field-row:last-child { border-bottom: 0; }
+.app-conf {
+  position: relative;
+  width: 64px; height: 4px;
+  background: var(--og-grey-200);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.app-conf i { position: absolute; inset: 0 auto 0 0; background: var(--og-accent); border-radius: 2px; }
+.app-conf i[data-low="true"] { background: var(--og-warning-500); }
+
+.app-party {
+  display: flex; align-items: center; gap: var(--og-space-2);
+  padding: var(--og-space-2);
+  border: 1px solid var(--og-border);
+  border-radius: var(--og-radius-md);
+  background: var(--og-surface);
+}
+.app-party[data-you="true"] { border-color: var(--og-accent); background: var(--og-accent-soft); }
+.app-party__text { min-width: 0; }
+.app-party__name { font-size: 13px; font-weight: 500; }
+.app-party__holds { font-size: 11px; color: var(--og-text-tertiary); }
+
+.app-private {
+  border-left: 2px solid var(--og-warning-500);
+  padding-left: var(--og-space-3);
+}
+
+@media (max-width: 1100px) {
+  .og-shell--with-inspector { grid-template-columns: 1fr; }
+  .og-rail, .og-inspector { display: none; }
+}
+
+/* ---------- paper: the actual documents, shown as documents ---------- */
+
+.app-papers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: var(--og-space-4);
+}
+.app-paper {
+  border: 1px solid var(--og-border);
+  border-radius: var(--og-radius-md);
+  background: var(--og-surface);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color var(--og-duration-fast) var(--og-ease-standard);
+}
+.app-paper:hover { border-color: var(--og-border-strong); }
+.app-paper__shot {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: #fff;
+  overflow: hidden;
+  cursor: zoom-in;
+}
+.app-paper__shot img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: top center;
+}
+.app-paper__shot--none {
+  display: flex; align-items: center; justify-content: center;
+  background: var(--og-grey-100);
+  cursor: default;
+}
+.app-paper__seal {
+  position: absolute; left: 8px; top: 8px;
+  font-size: 10px; letter-spacing: 0.10em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: var(--og-radius-full);
+  background: rgba(0,0,0,0.72); color: var(--og-text-secondary);
+  border: 1px solid var(--og-border-strong);
+}
+.app-paper__meta { padding: var(--og-space-3); display: grid; gap: 4px; }
+.app-paper__what { font-size: 14px; font-weight: 500; color: var(--og-text-primary); }
+.app-paper__why { font-size: 12px; color: var(--og-text-tertiary); line-height: 1.45; }
+.app-paper__from { font-size: 11px; color: var(--og-text-secondary); }
+
+/* full size viewer */
+.app-lightbox {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.92);
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--og-space-8);
+  cursor: zoom-out;
+}
+.app-lightbox img {
+  max-width: 94vw; max-height: 88vh;
+  border-radius: var(--og-radius-sm);
+  background: #fff;
+}
+.app-lightbox figcaption {
+  position: absolute; bottom: 22px; left: 0; right: 0;
+  text-align: center; color: var(--og-text-secondary); font-size: 13px;
+}
+
+/* the plain sentence that sits above each screen */
+.app-plain {
+  font-family: var(--og-font-display);
+  font-weight: 400;
+  font-size: 26px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--og-text-primary);
+  max-width: 46ch;
+  margin-bottom: var(--og-space-2);
+}
+.app-plain-sub { font-size: 14px; color: var(--og-text-secondary); max-width: 62ch; }
+.app-section { margin-bottom: var(--og-space-10); }
+
+/* the stone, big */
+.app-stone-shot {
+  border: 1px solid var(--og-border);
+  border-radius: var(--og-radius-md);
+  background: #000;
+  overflow: hidden;
+  position: relative;
+}
+.app-stone-shot img { width: 100%; display: block; }
+.app-legend { display: flex; gap: var(--og-space-4); flex-wrap: wrap; margin-top: var(--og-space-3); }
+.app-legend span { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--og-text-secondary); }
+.app-legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+.app-verdict {
+  display: flex; align-items: center; gap: var(--og-space-3);
+  padding: var(--og-space-4);
+  border: 1px solid var(--og-border);
+  border-radius: var(--og-radius-md);
+  background: var(--og-sunken);
+}
+.app-verdict__big {
+  font-family: var(--og-font-display);
+  font-size: 30px; line-height: 1;
+}
+.app-verdict--good .app-verdict__big { color: var(--og-text-success); }
+.app-verdict--bad .app-verdict__big { color: var(--og-text-danger); }
+.app-verdict--hold .app-verdict__big { color: var(--og-text-warning); }

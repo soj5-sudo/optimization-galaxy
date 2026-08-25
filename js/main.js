@@ -441,7 +441,7 @@
       }
       els.shareModal.hidden = false;
     } catch (e) {
-      setStatus('Share failed. Is the local server running?', false);
+      setStatus('Live sharing needs the local server. The model still runs here.', false);
     } finally {
       els.shareBtn.disabled = false;
     }

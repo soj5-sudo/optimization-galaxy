@@ -3,465 +3,134 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Optimization Galaxy: GXN-2 rough cut planner</title>
-<meta name="description" content="GXN-2 reads a Galaxy-class rough diamond scan, maps internal features, and returns a complete cutting plan with yield, clarity and value estimates. Jewel Labs demo build.">
+<title>Optimization Galaxy</title>
+<meta name="description" content="One live record per stone. Three companies, shared evidence, and the filing that lets the parcel move.">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/main.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/workspace.css">
 </head>
-<body>
+<body class="og-app">
 
-<nav class="nav" id="nav" aria-label="Main">
-  <a class="nav-brand" href="#top">
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 2L20 9L12 22L4 9L12 2Z" stroke="#c4c6ca" stroke-width="1.3" fill="rgba(196,198,202,0.12)"/>
-      <path d="M4 9H20M12 2L8.5 9L12 22M12 2L15.5 9L12 22" stroke="#c4c6ca" stroke-width="0.7"/>
+<header class="og-appbar">
+  <div class="og-appbar__brand">
+    <svg class="og-appbar__mark" viewBox="0 0 24 24" fill="none" aria-hidden="true" width="22" height="22">
+      <path d="M12 3.2L19.2 9.4L12 20.8L4.8 9.4L12 3.2Z" stroke="currentColor" stroke-width="1.4" fill="none"/>
+      <path d="M4.8 9.4H19.2M12 3.2L9.1 9.4L12 20.8M12 3.2L14.9 9.4L12 20.8" stroke="currentColor" stroke-width="0.7"/>
     </svg>
-    <span class="brand-house">Jewel Labs</span>
-    <span class="brand-product">Optimization Galaxy</span>
-  </a>
-  <div class="nav-links">
-    <a href="#cycle">Cycle</a>
-    <a href="#analyzer">Analyzer</a>
-    <a href="#model">Model</a>
-    <a href="#references">References</a>
+    <span class="og-appbar__product">Optimization&nbsp;Galaxy</span>
   </div>
-  <div class="nav-actions">
-    <span class="participants" id="participants" hidden></span>
-    <button class="btn btn-ghost btn-small" id="share-btn">Share session</button>
-    <button class="btn btn-primary btn-small" id="demo-btn">Start model</button>
-  </div>
-</nav>
 
-<header class="hero-compact" id="top">
-  <div class="wrap">
-    <p class="label reveal">Jewel Labs Research, demo build</p>
-    <h1 class="display reveal">Rough cut optimization<br>from a single Galaxy scan.</h1>
-    <p class="lede reveal">GXN-2 is a vision model for rough planning. Give it one scan frame from a Galaxy-class
-      inclusion mapper and it segments the stone, maps every internal feature, searches the placement space,
-      and returns the exact cutting plan: stones, proportions, saw line, clarity estimates, yield and value.</p>
-    <div class="hero-metrics reveal" role="list" aria-label="Headline validation metrics">
-      <div role="listitem"><dt>Segmentation IoU</dt><dd class="num">0.943</dd></div>
-      <div role="listitem"><dt>Yield MAE</dt><dd class="num">1.8%</dd></div>
-      <div role="listitem"><dt>Expert plan agreement</dt><dd class="num">94.1%</dd></div>
-      <div role="listitem"><dt>Inference</dt><dd class="num">0.4s</dd></div>
+  <div class="og-appbar__record" id="record-chip">
+    <span class="og-appbar__record-name" id="record-name">No shipment open</span>
+    <span class="og-appbar__record-id og-badge og-badge--mono" id="record-id">&mdash;</span>
+  </div>
+
+  <div class="og-appbar__spacer"></div>
+
+  <div class="og-appbar__actions">
+    <div class="og-field app-field-inline" title="Everything on screen is what this company is allowed to see">
+      <label class="og-label og-t-11 og-upper og-c-tertiary" for="viewing-as">Viewing as</label>
+      <select class="og-select og-select--sm" id="viewing-as">
+        <option value="factory">Factory</option>
+        <option value="exporter" selected>Exporter</option>
+        <option value="importer">Importer</option>
+      </select>
     </div>
-    <p class="sim-note reveal">Validation figures are simulated for this demo build. The analyzer below runs real
-      segmentation and placement optimization on your scan, in your browser.</p>
+    <div class="og-avatar-group" id="roster" aria-label="People in this session"></div>
+    <button class="og-btn og-btn--secondary og-btn--sm" id="btn-share">Share session</button>
+    <button class="og-btn og-btn--primary og-btn--sm" id="btn-run">Run shipment</button>
   </div>
 </header>
 
-<section id="cycle">
-  <div class="wrap">
-    <div class="section-head">
-      <p class="label">00, The desk</p>
-      <h2 class="section-title">Three agents run the desk.<br>One record per stone.</h2>
-      <p class="lede">Compliance, quoting and cut planning handle the daily operations, and all three read and write
-        the same record. That is the point: the price cannot disagree with the filing, and the filing cannot
-        disagree with the lab report, because there is only one set of facts. Ten people build this passport by
-        hand over seven to nine days. Here it takes minutes.</p>
+<div class="og-shell og-shell--with-inspector">
+
+  <aside class="og-rail" id="rail">
+    <div class="og-rail__section">
+      <p class="og-eyebrow">Shipment</p>
+      <div class="og-stack-2" id="shipment-list"></div>
     </div>
 
-    <div class="cycle-jobs">
-      <article class="job">
-        <p class="label">Compliance agent</p>
-        <h3>Origin proved, statement filed</h3>
-        <p>Reads the mining certificate, the lab report and the invoice out of the inbox, checks every field against
-          the other two, and generates the G7 Due Diligence Statement with the audit trail behind it. A mismatch
-          stops the filing on our side.</p>
-        <p class="job-stake">Required since January 2026 on every natural polished stone at or above 0.5 ct. A wrong
-          origin field costs up to 40% of the shipment plus seizure. A sanctioned stone, $377,700 per violation or
-          twice the transaction value.</p>
-      </article>
-      <article class="job">
-        <p class="label">Quoting agent</p>
-        <h3>Priced off the same record</h3>
-        <p>Prices rough and polished against the market and the expected yield, then applies the duty the country of
-          polish sets. That field comes from the record compliance already proved, so the quote and the filing
-          always agree.</p>
-        <p class="job-stake">A price that contradicts the filing is a price that cannot ship.</p>
-      </article>
-      <article class="job">
-        <p class="label">Cut planning agent</p>
-        <h3>Scans the rough, returns the plan</h3>
-        <p>Scans the rough, maps the inclusions, runs the cut options, and returns the plan that yields the most,
-          then hands it to the floor and takes the finished report back.</p>
-        <p class="job-stake">Only 40 to 42 of every 100 rough carats survive as polished. The plan decides where in
-          that range you land, which is about 5% of a factory's production.</p>
-      </article>
+    <div class="og-rail__section">
+      <p class="og-eyebrow">Parties</p>
+      <div class="og-stack-2" id="party-list"></div>
     </div>
 
-    <div class="demo-bar">
-      <div>
-        <p class="label">Run the desk</p>
-        <p class="demo-sub">Press Start model. It walks the whole cycle on its own, holding about half a minute on
-          each step so there is room to talk over it. Pause stops the clock, Next moves on early.</p>
-      </div>
-      <div class="demo-bar-actions">
-        <button class="btn btn-ghost btn-small" id="script-btn">Spoken script</button>
-      </div>
+    <div class="og-rail__section">
+      <p class="og-eyebrow">Agents</p>
+      <div class="og-stack-2" id="agent-list"></div>
     </div>
 
-    <div class="demo-panel" id="demo-panel" hidden>
-      <div class="beat">
-        <span class="beat-index num" id="beat-index">01 of 08</span>
-        <h3 class="beat-title" id="beat-title">Ready</h3>
-        <p class="beat-line" id="beat-line">Press Start model.</p>
-        <div class="beat-holdbar"><i id="beat-hold"></i></div>
-      </div>
-      <div class="demo-steps" id="demo-steps"></div>
-      <div class="demo-foot">
-        <div class="demo-link-row" hidden>
-          <span class="label">Session link</span>
-          <code id="demo-link"></code>
-        </div>
-        <div class="demo-controls" id="demo-controls" hidden>
-          <button class="btn btn-ghost btn-small" id="pause-btn">Pause</button>
-          <button class="btn btn-ghost btn-small" id="next-btn">Next</button>
-        </div>
-      </div>
+    <div class="og-rail__section app-rail-foot">
+      <p class="og-eyebrow">System</p>
+      <dl class="og-kv og-kv--rows" id="system-status"></dl>
     </div>
+  </aside>
 
-    <div class="scan-stage" id="scan-stage">
-      <img src="assets/samples/rough-327.png" alt="Galaxy scan of rough stone 327.8">
-      <p class="scan-note">Stone 327.8, straight off the machine. The grey is the diamond, the coloured marks are the flaws inside it.</p>
+  <main class="og-main">
+    <nav class="og-tabs" id="tabs" role="tablist">
+      <button class="og-tab og-tab--active" role="tab" data-tab="overview">Overview</button>
+      <button class="og-tab" role="tab" data-tab="documents">Documents<span class="og-tab__count" id="tabcount-documents">0</span></button>
+      <button class="og-tab" role="tab" data-tab="scan">Scan and cut</button>
+      <button class="og-tab" role="tab" data-tab="compliance">Compliance</button>
+      <button class="og-tab" role="tab" data-tab="price">Price</button>
+      <button class="og-tab" role="tab" data-tab="statement">Statement</button>
+      <button class="og-tab" role="tab" data-tab="audit">Audit</button>
+      <button class="og-tab" role="tab" data-tab="model">Model</button>
+    </nav>
+
+    <div class="app-panels" id="panels">
+      <section class="og-tabpanel is-active" data-panel="overview" id="panel-overview"></section>
+      <section class="og-tabpanel" data-panel="documents" id="panel-documents"></section>
+      <section class="og-tabpanel" data-panel="scan" id="panel-scan"></section>
+      <section class="og-tabpanel" data-panel="compliance" id="panel-compliance"></section>
+      <section class="og-tabpanel" data-panel="price" id="panel-price"></section>
+      <section class="og-tabpanel" data-panel="statement" id="panel-statement"></section>
+      <section class="og-tabpanel" data-panel="audit" id="panel-audit"></section>
+      <section class="og-tabpanel" data-panel="model" id="panel-model"></section>
     </div>
+  </main>
 
-    <div class="desk-panel" id="desk-panel">
-      <p class="label">The desk</p>
-      <div class="desk-list" id="desk-list"></div>
+  <aside class="og-inspector" id="inspector">
+    <div class="og-inspector__header">
+      <p class="og-inspector__title" id="inspector-title">Activity</p>
     </div>
-
-    <div class="inbox-panel" id="inbox-panel" hidden>
-      <div class="inbox-head">
-        <div>
-          <p class="label">The papers, however they turn up</p>
-          <p class="inbox-sub">Papers turn up on email, WhatsApp and Telegram. The software reads them all. Nothing is typed in.</p>
-        </div>
-        <span class="inbox-count num" id="inbox-count">0 fields</span>
-      </div>
-      <div class="inbox-list" id="inbox-list"></div>
+    <div class="og-inspector__body" id="inspector-body">
+      <div class="og-agent__log" id="activity-log"></div>
     </div>
-
-    <div class="agent-desk">
-      <div class="agent-desk-head">
-        <p class="label">Three helpers, one page per stone</p>
-        <span class="agent-desk-note">One works out the cut. One proves where the stone came from. One works out the price. All three read the same page.</span>
-      </div>
-      <div class="agent-cards" id="agent-cards">
-        <article class="agent-card" data-agent="planning">
-          <div class="agent-card-head">
-            <p class="label">Cut planning agent</p>
-            <span class="agent-state" id="state-planning">Idle</span>
-          </div>
-          <div class="agent-card-body" id="body-planning">
-            <p class="muted-line">Waiting for a scan.</p>
-          </div>
-        </article>
-        <article class="agent-card" data-agent="compliance">
-          <div class="agent-card-head">
-            <p class="label">Compliance agent</p>
-            <span class="agent-state" id="state-compliance">Idle</span>
-          </div>
-          <div class="agent-card-body" id="body-compliance">
-            <p class="muted-line">Waiting for the documents.</p>
-          </div>
-        </article>
-        <article class="agent-card" data-agent="quoting">
-          <div class="agent-card-head">
-            <p class="label">Quoting agent</p>
-            <span class="agent-state" id="state-quoting">Idle</span>
-          </div>
-          <div class="agent-card-body" id="body-quoting">
-            <p class="muted-line">Waiting on compliance.</p>
-          </div>
-        </article>
-      </div>
+    <div class="og-inspector__footer">
+      <span class="og-t-11 og-c-tertiary" id="chain-head">Audit chain empty</span>
     </div>
+  </aside>
 
-    <div class="cycle-grid">
-      <div class="cycle-main">
-        <article class="agent-card blocked-card" id="blocked-card" hidden>
-          <div class="agent-card-head">
-            <p class="label">Second record, screened</p>
-            <span class="agent-state" id="state-blocked">Idle</span>
-          </div>
-          <div class="agent-card-body" id="body-blocked"></div>
-        </article>
-
-        <div class="passport" id="passport" hidden>
-          <div class="passport-head">
-            <p class="label">Stone passport</p>
-            <span class="passport-id num" id="passport-id"></span>
-          </div>
-          <div class="table-scroll">
-            <table class="plan-table" id="passport-table">
-              <thead><tr><th>Field</th><th>Value</th><th>Source document</th></tr></thead>
-              <tbody id="passport-body"></tbody>
-            </table>
-          </div>
-          <div class="passport-actions">
-            <button class="btn btn-ghost btn-small" id="dl-cutting">Cutting report</button>
-            <button class="btn btn-ghost btn-small" id="dl-dds">Due Diligence Statement</button>
-            <button class="btn btn-ghost btn-small" id="dl-plan">Cut plan</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="cycle-side">
-        <div class="docs-strip">
-          <p class="label">Source documents</p>
-          <a class="doc-thumb" href="assets/docs/igi-7996745173.png" target="_blank" rel="noopener">
-            <img src="assets/docs/igi-7996745173.png" alt="IGI report 7996745173">
-            <span>IGI 7996745173, 3.01 ct F SI2</span>
-          </a>
-          <a class="doc-thumb" href="assets/docs/gia-7373304073.png" target="_blank" rel="noopener">
-            <img src="assets/docs/gia-7373304073.png" alt="GIA report 7373304073">
-            <span>GIA 7373304073, 1.00 ct G I2</span>
-          </a>
-          <p class="sim-note">Lab reports are genuine. Mining certificates and invoices are simulated for this build.</p>
-        </div>
-        <div class="agent-log" id="cycle-log" aria-live="polite">
-          <p class="agent-log-empty">Agent traffic appears here.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<main>
-  <section id="analyzer">
-    <div class="wrap">
-      <div class="section-head">
-        <p class="label">02, Analyzer</p>
-        <h2 class="section-title">Feed it a scan.</h2>
-        <p class="lede">Upload a Galaxy scan frame, paste one from the clipboard, or use a bundled sample.
-          Green regions read as mapped inclusions, prior plan overlays are detected and ignored.</p>
-      </div>
-
-      <div class="console">
-        <div class="console-toolbar">
-          <div class="field-inline">
-            <label for="stone-width">Girdle width</label>
-            <input type="number" id="stone-width" value="12.0" min="1" max="60" step="0.1"> <span class="unit">mm</span>
-          </div>
-          <div class="field-inline">
-            <label for="objective">Objective</label>
-            <select id="objective">
-              <option value="value">Max value</option>
-              <option value="weight">Max weight</option>
-              <option value="balanced">Balanced</option>
-            </select>
-          </div>
-          <div class="spacer"></div>
-          <span class="console-status" id="console-status" data-live="false">No scan loaded</span>
-          <button class="btn btn-primary" id="run-btn" disabled>Run model</button>
-        </div>
-
-        <div class="console-grid">
-          <div class="intake">
-            <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload a scan image">
-              <canvas id="preview-canvas"></canvas>
-              <p id="drop-hint">Drop a scan here, click to browse, or paste from the clipboard</p>
-            </div>
-            <input type="file" id="file-input" accept="image/*" hidden>
-            <div class="samples" id="samples" aria-label="Sample scans">
-              <button data-src="assets/samples/rough-327.png" data-name="Galaxy rough scan 327.8" data-doc="IGI-7996745173" data-width="14.4">
-                <img src="assets/samples/rough-327.png" alt="Galaxy scan of rough stone 327.8"><span>Rough 327.8</span>
-              </button>
-              <button data-src="assets/samples/scan-02.png" data-name="Sample scan 1, inclusion map">
-                <img src="assets/samples/scan-02.png" alt="Rough scan with mapped inclusions"><span>Inclusion map</span>
-              </button>
-              <button data-src="assets/samples/scan-01.png" data-name="Sample scan 2, planned rough">
-                <img src="assets/samples/scan-01.png" alt="Rough scan with prior plan overlay"><span>Planned rough</span>
-              </button>
-              <button data-src="assets/samples/scan-04.png" data-name="Sample scan 3, elongated rough">
-                <img src="assets/samples/scan-04.png" alt="Elongated rough scan with wireframe"><span>Elongated rough</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="inference">
-            <div class="pipe-strip" id="pipeline-strip" aria-label="Model stages"></div>
-            <div class="progressbar"><i id="progress-fill"></i></div>
-            <div class="agent-log" id="inference-log" aria-live="polite">
-              <p class="agent-log-empty">Layer activity will stream here when the model runs.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="results" hidden>
-    <div class="wrap">
-      <div class="section-head">
-        <p class="label">03, Plan</p>
-        <h2 class="section-title">The cut, exactly.</h2>
-      </div>
-
-      <div class="stat-row six" id="stat-row"></div>
-
-      <div class="ba-grid">
-        <figure>
-          <div class="ba-canvas"><canvas id="before-canvas"></canvas></div>
-          <figcaption class="label">Before: features mapped</figcaption>
-        </figure>
-        <figure>
-          <div class="ba-canvas"><canvas id="after-canvas"></canvas></div>
-          <figcaption class="label">After: optimized plan</figcaption>
-        </figure>
-      </div>
-
-      <div class="result-cols">
-        <div>
-          <h3 class="label">Recovery plan</h3>
-          <div class="table-scroll">
-            <table class="plan-table">
-              <thead>
-                <tr>
-                  <th>Stone</th><th>Shape</th><th class="num">Girdle mm</th><th class="num">Depth mm</th>
-                  <th class="num">Carat</th><th>Clarity est</th><th class="num">$ per ct</th><th class="num">Value</th>
-                </tr>
-              </thead>
-              <tbody id="plan-body"></tbody>
-            </table>
-          </div>
-
-          <h3 class="label">Cutting instructions</h3>
-          <ol class="instructions" id="instructions"></ol>
-        </div>
-        <div>
-          <h3 class="label">Risk notes</h3>
-          <ul class="risks" id="risks"></ul>
-
-          <h3 class="label">Summary</h3>
-          <p class="summary" id="summary"></p>
-
-          <button class="btn btn-ghost" id="download-btn">Download report</button>
-          <p class="sim-note">Prices and gradings are simulated. Weight figures derive from a single view and an assumed depth.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="model">
-    <div class="wrap">
-      <div class="section-head">
-        <p class="label">04, Model card</p>
-        <h2 class="section-title">GXN-2, trained on the machine's own eyes.</h2>
-        <p class="lede">A ResNet-34 encoder with a U-Net decoder and two heads: inclusion segmentation
-          and plan value regression over the placement grid. The training corpus is Galaxy-class scan
-          imagery annotated with expert cutting plans.</p>
-      </div>
-
-      <div class="stat-row six">
-        <div class="stat"><dt>Parameters</dt><dd class="num">23.4M</dd></div>
-        <div class="stat"><dt>Training scans</dt><dd class="num">48,200</dd></div>
-        <div class="stat"><dt>Segmentation IoU</dt><dd class="num">0.943</dd></div>
-        <div class="stat"><dt>Yield MAE</dt><dd class="num">1.8%</dd></div>
-        <div class="stat"><dt>Clarity agreement</dt><dd class="num">91.2%</dd></div>
-        <div class="stat"><dt>Value vs expert</dt><dd class="num">+2.3%</dd></div>
-      </div>
-
-      <div class="chart-panel">
-        <canvas id="training-chart"></canvas>
-      </div>
-      <p class="sim-note">Model card figures are simulated for this demonstration build. In-browser analysis
-        (segmentation, feature mapping, placement search) is computed for real on every run.</p>
-    </div>
-  </section>
-
-  <section id="references">
-    <div class="wrap">
-      <div class="section-head">
-        <p class="label">05, References</p>
-        <h2 class="section-title">The hardware this speaks to.</h2>
-        <p class="lede">Galaxy-class inclusion mappers scan a rough stone without opening windows, and planning
-          software searches millions of cut options against the map. These references cover the real systems.</p>
-      </div>
-      <div class="links-grid">
-        <a class="link-card" href="https://sarine.com/technology/sarine-galaxy/" target="_blank" rel="noopener">
-          <span class="lk-host">sarine.com</span>
-          <span class="lk-title">Sarine Galaxy technology</span>
-          <span class="lk-why">The inclusion mapping family: fully automated internal scanning of rough diamonds since 2009.</span>
-        </a>
-        <a class="link-card" href="https://sarine.com/products/galaxy-1000_sarine/" target="_blank" rel="noopener">
-          <span class="lk-host">sarine.com</span>
-          <span class="lk-title">Galaxy 1000</span>
-          <span class="lk-why">Flagship scanner: rough up to 20 ct, all inclusion types across VS to I3, about 5 stones per hour, no windows polished open.</span>
-        </a>
-        <a class="link-card" href="https://sarine.com/products/galaxy-ultra/" target="_blank" rel="noopener">
-          <span class="lk-host">sarine.com</span>
-          <span class="lk-title">Galaxy Ultra</span>
-          <span class="lk-why">Micron-level mapping, virtually up to VVS detection, the highest resolution in the family.</span>
-        </a>
-        <a class="link-card" href="https://sarine.com/products/sarine-advisor/" target="_blank" rel="noopener">
-          <span class="lk-host">sarine.com</span>
-          <span class="lk-title">Advisor rough planning</span>
-          <span class="lk-why">The planning software: predicts polished clarity from the map and scores millions of cut options for yield and value.</span>
-        </a>
-        <a class="link-card" href="https://sarine.com/products/quazer-3/" target="_blank" rel="noopener">
-          <span class="lk-host">sarine.com</span>
-          <span class="lk-title">Quazer 3 laser sawing</span>
-          <span class="lk-why">532 nm green laser sawing and shaping, the execution end of the planned saw line.</span>
-        </a>
-        <a class="link-card" href="https://rapaport.com/magazine-article/inclusion-mapping/" target="_blank" rel="noopener">
-          <span class="lk-host">rapaport.com</span>
-          <span class="lk-title">Inclusion mapping, explained</span>
-          <span class="lk-why">Trade press explainer on how internal scanning works and what it changed in rough planning.</span>
-        </a>
-      </div>
-    </div>
-  </section>
-</main>
-
-<footer>
-  <div class="wrap">
-    <div class="footer-grid">
-      <span>Jewel Labs, Optimization Galaxy</span>
-      <span><a href="#analyzer">Analyzer</a> &nbsp; <a href="#model">Model</a> &nbsp; <a href="#references">References</a></span>
-    </div>
-    <p class="footer-note">Demonstration system. Prices, gradings and model card figures are simulated.
-      Not affiliated with Sarine Technologies Ltd. Galaxy is a trademark of its owner, referenced for context.</p>
-  </div>
-</footer>
-
-<div class="film" id="film" hidden>
-  <video id="film-video" playsinline muted preload="auto" disablepictureinpicture>
-    <source src="assets/factory.mp4" type="video/mp4">
-  </video>
-  <p class="film-tag">Galaxy scan, factory floor</p>
 </div>
 
-<div class="stage" id="stage" aria-live="polite"></div>
-
-<div class="caption-bar" id="caption-bar" hidden>
-  <p class="caption-line" id="caption-line"></p>
-</div>
-
-<div class="modal-scrim" id="share-modal" hidden>
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="share-title">
-    <h3 id="share-title">Shared session</h3>
-    <p>Anyone who opens a link below joins this session live: same scan, same parameters, same plan.
-      Use the LAN link for other people on your network.</p>
-    <div id="share-urls"></div>
-    <button class="btn btn-primary" id="share-close">Done</button>
+<div class="og-drawer" id="share-drawer" hidden>
+  <div class="og-drawer__scrim" data-close="share"></div>
+  <div class="og-drawer__panel">
+    <div class="og-drawer__header">
+      <p class="og-drawer__title">Share this session</p>
+      <button class="og-btn og-btn--ghost og-btn--icon og-btn--sm" data-close="share" aria-label="Close">&times;</button>
+    </div>
+    <div class="og-drawer__body og-stack-4" id="share-body"></div>
   </div>
 </div>
 
+
+
+<script src="src/domain.js"></script>
+<script src="src/extract.js"></script>
+<script src="src/rules.js"></script>
+<script src="src/precut.js"></script>
+<script src="src/quote.js"></script>
+<script src="src/agents.js"></script>
+<script src="src/audit.js"></script>
 <script src="js/cv.js"></script>
 <script src="js/planner.js"></script>
-<script src="js/pipeline.js"></script>
-<script src="js/report.js"></script>
-<script src="js/modelcard.js"></script>
+<script src="js/cnn.js"></script>
 <script src="js/session.js"></script>
-<script src="js/records.js"></script>
-<script src="js/inbox.js"></script>
-<script src="js/agents.js"></script>
-<script src="js/demo.js"></script>
-<script src="js/main.js"></script>
+<script src="js/workspace.js"></script>
 </body>
 </html>
