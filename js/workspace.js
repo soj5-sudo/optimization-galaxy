@@ -440,6 +440,8 @@
     };
     (painters[app.tab] || paintOverview)(rec);
     $('tabcount-documents').textContent = Object.keys(rec.documents).length;
+    // the inbox count belongs to the mailbox, not to whether its tab is open
+    $('tabcount-inbox').textContent = Mailbox.triage(mailboxFor()).pull.length;
   }
 
   function card(title, subtitle) {
