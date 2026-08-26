@@ -279,8 +279,9 @@
     let host = {};
     try { host = await (await fetch('/api/hostinfo')).json(); } catch (e) {}
 
+    const serverOcr = await OCR.probeServer();
     app.system = {
-      ocr: host.ocr || 'unavailable',
+      ocr: serverOcr ? (host.ocr || 'local') : 'in this browser',
       mail: host.mail || 'unknown',
       cnn: cnnStatus.loaded ? 'trained and loaded' : 'not trained yet',
       rules: Object.keys(app.ruleSets).length + ' rule sets',
@@ -1114,11 +1115,9 @@
       // 2. real optical read of the documents that exist as images
       for (const [docName, data] of Object.entries(bundle)) {
         if (!data._source) continue;
-        log('document reader', `Reading ${data._source.split('/').pop()} optically`);
+        log('document reader', `Reading ${data._source.split('/').pop()}`);
         try {
-          const dataUrl = await imageToDataUrl(data._source);
-          const res = await fetch('/api/ocr', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: dataUrl });
-          const ocr = await res.json();
+          const ocr = await OCR.read(data._source);
           if (ocr.text) {
             const parsed = Extract.run(ocr.text, docName);
             rec.extraction[docName] = { ocr, result: parsed };
@@ -1136,13 +1135,13 @@
               }
             }
             const s = parsed.summary;
-            log('document reader', `${ocr.words} words read in ${ocr.ms} ms. ${s.read} of ${s.total} fields clear, ${s.needsHuman} held for a person`, s.needsHuman ? 'warn' : 'ok');
+            log('document reader', `${ocr.words} words read in ${ocr.ms} ms by ${ocr.engine}. ${s.read} of ${s.total} fields clear, ${s.needsHuman} held for a person`, s.needsHuman ? 'warn' : 'ok');
             await audit('document_reader', 'Optical read', `${docName}, ${s.read} of ${s.total} fields`, { docName, words: ocr.words, verdict: s.verdict });
           } else {
-            log('document reader', `Could not read ${data._source.split('/').pop()}: ${ocr.error || 'no text'}`, 'warn');
+            log('document reader', `Nothing legible in ${data._source.split('/').pop()}, using the record on file`, 'warn');
           }
         } catch (e) {
-          log('document reader', 'Optical read unavailable, using the structured record', 'warn');
+          log('document reader', 'Reader unavailable, using the record on file', 'warn');
         }
       }
       render();
@@ -1272,8 +1271,7 @@
     let info = {};
     try {
       if (!Session.state.id) {
-        const id = await Session.create();
-        await Session.join(id, 'You', app.party);
+        await Session.open('You', app.party);
       }
       info = await Session.hostInfo();
     } catch (e) {
@@ -1283,6 +1281,25 @@
     }
     const urls = Session.shareUrls(Session.state.id, info);
     body.append(el('p', 'og-body', 'Anyone who opens one of these links joins this shipment. Each company signs in as itself and sees only what it is entitled to see.'));
+    if (Session.isLocal && Session.isLocal()) {
+      const note = el('div', 'og-banner og-banner--info');
+      const nb = el('div', 'og-banner__body');
+      nb.append(el('p', 'og-banner__title', 'Running without the session server'));
+      nb.append(el('p', null, 'Windows on this machine share the shipment live. To bring in a company on another machine, run the workspace with node server.js and share the address it prints.'));
+      note.append(nb);
+      body.append(note);
+    }
+    for (const org of ['factory', 'exporter', 'importer']) {
+      if (org === app.party) continue;
+      const row = el('div', 'og-input-group');
+      const i = el('input', 'og-input og-input--mono');
+      i.value = `${location.origin}${location.pathname}?session=${Session.state.id}&as=${org}`;
+      i.readOnly = true;
+      const b = el('button', 'og-btn og-btn--secondary og-btn--sm', `Open as ${org}`);
+      b.addEventListener('click', () => window.open(i.value, '_blank'));
+      row.append(i, b);
+      body.append(row);
+    }
     for (const u of urls) {
       const row = el('div', 'og-input-group');
       const i = el('input', 'og-input og-input--mono');
@@ -1405,7 +1422,7 @@
     $('viewing-as').value = org;
     try {
       const label = Domain.PARTIES[org] ? Domain.PARTIES[org].label : org;
-      await Session.join(id.toUpperCase(), label, org);
+      await Session.joinAnywhere(id.toUpperCase(), label, org);
       log('session', `Joined shipment ${id.toUpperCase()} as the ${org}. You will see this stone and your own numbers.`, 'ok');
     } catch (e) {
       log('session', `Could not join ${id.toUpperCase()}. It may have expired.`, 'warn');
