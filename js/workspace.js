@@ -169,6 +169,74 @@
     document.body.append(box);
   }
 
+  // The inbox a house actually works from. Two of these are noise, which is the
+  // point: the triage has to leave them alone.
+  const MAILBOX = {
+    'IGI-7996745173': [
+      { id: 'm1', channel: 'WhatsApp', from: 'Kagiso Sebina, Botswana Rough Supply',
+        subject: 'Parcel PRC-88231, Kimberley Process certificate attached',
+        received: '08 Nov 2025, 09:14',
+        preview: 'Certificate and export set for parcel PRC-88231, 17.69 ct rough out of Jwaneng. Cleared for shipment.',
+        attachments: [{ name: 'KP-BW-2025-114872.pdf', img: 'assets/docs/kp-bw-2025-114872.png' }] },
+      { id: 'm2', channel: 'Email', from: 'IGI Antwerp, reports@igi.org',
+        subject: 'Grading report 7996745173 issued',
+        received: '14 May 2026, 16:02',
+        preview: 'Grading is complete for the stone submitted under job 88231-A. Report attached, verifiable on our site.',
+        attachments: [{ name: 'IGI-7996745173.pdf', img: 'assets/docs/igi-7996745173.png' }] },
+      { id: 'm3', channel: 'Telegram', from: 'Antwerp Diamond Trading',
+        subject: 'Invoice INV-2026-0431 for the Antwerp order',
+        received: '02 Aug 2026, 11:47',
+        preview: 'Invoice raised, CIP Antwerp, polished in Surat. File the statement before the parcel moves.',
+        attachments: [{ name: 'INV-2026-0431.pdf', img: 'assets/docs/memo-kama-schachter.png' }] },
+      { id: 'm4', channel: 'Email', from: 'Rapaport, news@diamonds.net',
+        subject: 'Weekly market report and price list movement',
+        received: '03 Aug 2026, 06:00',
+        preview: 'This week in the market. To stop receiving these, unsubscribe here.',
+        attachments: [] },
+      { id: 'm5', channel: 'Email', from: 'Surat office',
+        subject: 'Re: Re: Re: lunch on Thursday',
+        received: '03 Aug 2026, 09:22',
+        preview: 'Works for me, see you at one.',
+        attachments: [] },
+    ],
+    'GIA-7373304073': [
+      { id: 'g1', channel: 'WhatsApp', from: 'Consignment desk',
+        subject: 'Consignment parcel PRC-44017, certificate attached',
+        received: '30 Sep 2020, 08:31',
+        preview: 'Certificate and export record for the consignment parcel, 2.48 ct rough. Held in stock since 2020.',
+        attachments: [{ name: 'KP-RU-2020-330914.pdf', img: 'assets/docs/kp-ru-2020-330914.png' }] },
+      { id: 'g2', channel: 'Email', from: 'GIA, reports@gia.edu',
+        subject: 'Grading report 7373304073',
+        received: '22 Jan 2021, 10:05',
+        preview: 'Report attached for the 1.00 ct round brilliant submitted under this account.',
+        attachments: [{ name: 'GIA-7373304073.pdf', img: 'assets/docs/gia-7373304073.png' }] },
+      { id: 'g3', channel: 'Telegram', from: 'Consignment desk',
+        subject: 'Invoice INV-2026-0432',
+        received: '03 Aug 2026, 15:20',
+        preview: 'Invoice for the 1.00 ct against the same Antwerp order. Origin Botswana.',
+        attachments: [{ name: 'INV-2026-0432.pdf', img: 'assets/docs/memo-kama-schachter.png' }] },
+    ],
+    'CVD-R4471': [
+      { id: 'c1', channel: 'Email', from: 'Surat Advanced Materials, Unit 2',
+        subject: 'Reactor batch R-4471 record',
+        received: '25 Feb 2026, 18:40',
+        preview: 'Batch record for the CVD run, 336 hours, six crystals.',
+        attachments: [{ name: 'CVD-R4471.pdf', img: 'assets/docs/cvd-batch-r4471.png' }] },
+      { id: 'c2', channel: 'Email', from: 'IGI, reports@igi.org',
+        subject: 'Grading report 6221904488, laboratory grown',
+        received: '02 Mar 2026, 11:15',
+        preview: 'Laboratory grown grading report attached.',
+        attachments: [{ name: 'IGI-6221904488.pdf', img: 'assets/docs/igi-7996745173.png' }] },
+      { id: 'c3', channel: 'Email', from: 'Kama Schachter Jewelry',
+        subject: 'Invoice INV-2026-0455',
+        received: '04 Mar 2026, 09:02',
+        preview: 'Invoice for the lab grown lot.',
+        attachments: [{ name: 'INV-2026-0455.pdf', img: 'assets/docs/memo-kama-schachter.png' }] },
+    ],
+  };
+
+  function mailboxFor() { return MAILBOX[app.stone.docKey] || MAILBOX['IGI-7996745173']; }
+
   const SIGNER = {
     name: 'M. Patel', role: 'Compliance Director',
     company: 'Jewel Labs Manufacturing, Surat', place: 'Surat, India',
@@ -274,6 +342,7 @@
       } catch (e) { /* reported in system status */ }
     }
 
+    OCR.warm();                        // fetch the cache, and the engine if needed
     const cnnStatus = await CNN.load();
     const policy = await PreCut.loadPolicy();
     let host = {};
@@ -365,7 +434,7 @@
     renderRail();
 
     const painters = {
-      overview: paintOverview, documents: paintDocuments, scan: paintScan,
+      overview: paintOverview, inbox: paintInbox, documents: paintDocuments, scan: paintScan,
       compliance: paintCompliance, price: paintPrice, statement: paintStatement,
       audit: paintAudit, model: paintModel,
     };
@@ -468,6 +537,60 @@
     if (!rec.plan) {
       p.append(emptyState('Nothing has run yet on this stone',
         'Press Run shipment in the top bar. The agents read the documents, analyse the scan, plan the cut, check the origin and price the result.'));
+    }
+  }
+
+  // ---------- the inbox ----------
+  function paintInbox(rec) {
+    const p = $('panel-inbox');
+    p.innerHTML = '';
+
+    const intro = el('div', 'app-section');
+    intro.append(el('p', 'app-plain', 'The papers arrive in the inbox they always arrived in.'));
+    intro.append(el('p', 'app-plain-sub', 'Nobody uploads anything to a portal. The mine sends the certificate on WhatsApp, the lab emails the report, the buyer sends the invoice. The software reads the mailbox and decides which messages carry a document worth pulling into this stone, and says why for each one.'));
+    p.append(intro);
+
+    const messages = mailboxFor();
+    const sorted = Mailbox.triage(messages);
+    $('tabcount-inbox').textContent = sorted.pull.length;
+
+    const groups = [
+      ['Pulled into the record', sorted.pull, 'success', 'These carry a document this stone needs.'],
+      ['Set aside for a person', sorted.ask, 'warning', 'Something matched, but not enough to act on alone.'],
+      ['Left alone', sorted.ignore, 'neutral', 'Nothing here belongs on a stone record.'],
+    ];
+
+    for (const [title, items, tone, note] of groups) {
+      if (!items.length) continue;
+      const c = card(title, note);
+      for (const { message, verdict } of items) {
+        const row = el('div', 'app-mail');
+        const head = el('div', 'app-mail__head');
+        head.append(el('span', 'app-mail__from', message.from));
+        const chan = el('span', 'og-badge og-t-11', message.channel);
+        head.append(chan, el('span', 'app-mail__when', message.received));
+        row.append(head);
+        row.append(el('p', 'app-mail__subject', message.subject));
+        row.append(el('p', 'app-mail__preview', message.preview));
+
+        if (message.attachments.length) {
+          const att = el('div', 'app-mail__att');
+          for (const a of message.attachments) {
+            const b = el('button', 'og-btn og-btn--ghost og-btn--sm', a.name);
+            b.addEventListener('click', () => lightbox(a.img, a.name));
+            att.append(b);
+          }
+          row.append(att);
+        }
+
+        const why = el('div', 'app-mail__why');
+        why.append(pill(verdict.verdict === 'pull' ? 'pull in' : verdict.verdict === 'ask' ? 'ask a person' : 'leave it', tone));
+        if (verdict.docType) why.append(el('span', 'og-t-12 og-c-secondary', Domain.DOC_TYPES[verdict.docType] ? Domain.DOC_TYPES[verdict.docType].label : verdict.docType));
+        why.append(el('span', 'og-hint', verdict.reasons.map(r => (r.good ? '' : 'but ') + r.why).join(', ')));
+        row.append(why);
+        c.body.append(row);
+      }
+      p.append(c);
     }
   }
 
@@ -1112,13 +1235,21 @@
         await audit('document_reader', 'Document received', Domain.DOC_TYPES[docName]?.label || docName, { docName });
       }
 
-      // 2. real optical read of the documents that exist as images
-      for (const [docName, data] of Object.entries(bundle)) {
-        if (!data._source) continue;
-        log('document reader', `Reading ${data._source.split('/').pop()}`);
+      // 2. real optical read of the documents that exist as images.
+      // They are read at the same time rather than one after another: three
+      // documents that do not depend on each other should not queue.
+      const readable = Object.entries(bundle).filter(([, d]) => d._source);
+      if (readable.length) {
+        log('document reader', `Reading ${readable.length} documents`);
+      }
+      const reads = await Promise.all(readable.map(async ([docName, data]) => {
+        try { return [docName, data, await OCR.read(data._source)]; }
+        catch (e) { return [docName, data, null]; }
+      }));
+      for (const [docName, data, ocrResult] of reads) {
+        const ocr = ocrResult;
         try {
-          const ocr = await OCR.read(data._source);
-          if (ocr.text) {
+          if (ocr && ocr.text) {
             const parsed = Extract.run(ocr.text, docName);
             rec.extraction[docName] = { ocr, result: parsed };
             for (const [fname, f] of Object.entries(parsed.fields)) {
@@ -1135,7 +1266,7 @@
               }
             }
             const s = parsed.summary;
-            log('document reader', `${ocr.words} words read in ${ocr.ms} ms by ${ocr.engine}. ${s.read} of ${s.total} fields clear, ${s.needsHuman} held for a person`, s.needsHuman ? 'warn' : 'ok');
+            log('document reader', `${data._source.split('/').pop()}: ${ocr.words} words${ocr.cached ? '' : ` in ${ocr.ms} ms`} by ${ocr.engine}. ${s.read} of ${s.total} fields clear, ${s.needsHuman} held`, s.needsHuman ? 'warn' : 'ok');
             await audit('document_reader', 'Optical read', `${docName}, ${s.read} of ${s.total} fields`, { docName, words: ocr.words, verdict: s.verdict });
           } else {
             log('document reader', `Nothing legible in ${data._source.split('/').pop()}, using the record on file`, 'warn');

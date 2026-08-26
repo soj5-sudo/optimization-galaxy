@@ -16,6 +16,33 @@ const OCR = (() => {
   let wasmWorker = null;
   let wasmLoading = null;
 
+  // The bundled documents never change, so they are read once when the site is
+  // built and the words shipped alongside them. A visitor should not spend ten
+  // seconds per page having their laptop recognise the same fixed specimen that
+  // every other visitor has already recognised. Anything uploaded has no entry
+  // here and is read live, which is the case that actually needs the engine.
+  let cache = null;
+  let cacheLoading = null;
+
+  function loadCache() {
+    if (cache) return Promise.resolve(cache);
+    if (cacheLoading) return cacheLoading;
+    cacheLoading = fetch('assets/docs/ocr-cache.json', { cache: 'force-cache' })
+      .then(r => (r.ok ? r.json() : {}))
+      .catch(() => ({}))
+      .then(c => { cache = c; return c; });
+    return cacheLoading;
+  }
+
+  // Start fetching the cache and, where it will be needed, the engine, without
+  // blocking anything. By the time a document is opened both are usually there.
+  function warm() {
+    loadCache();
+    probeServer().then(hasServer => {
+      if (!hasServer) getWorker().catch(() => {});
+    });
+  }
+
   async function probeServer() {
     if (serverAvailable !== null) return serverAvailable;
     try {
@@ -89,6 +116,13 @@ const OCR = (() => {
   async function read(src, onProgress) {
     const t0 = performance.now();
 
+    // a document we have already read
+    const key = String(src).replace(/^.*?(assets\/docs\/)/, '$1');
+    const hit = (await loadCache())[key];
+    if (hit && hit.text) {
+      return { text: hit.text, words: hit.words, ms: Math.round(performance.now() - t0), engine: hit.engine, cached: true };
+    }
+
     if (await probeServer()) {
       try {
         const img = await loadImage(src);
@@ -121,5 +155,5 @@ const OCR = (() => {
     };
   }
 
-  return { read, probeServer };
+  return { read, probeServer, warm };
 })();

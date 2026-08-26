@@ -75,6 +75,7 @@
   <main class="og-main">
     <nav class="og-tabs" id="tabs" role="tablist">
       <button class="og-tab og-tab--active" role="tab" data-tab="overview">Overview</button>
+      <button class="og-tab" role="tab" data-tab="inbox">Inbox<span class="og-tab__count" id="tabcount-inbox">0</span></button>
       <button class="og-tab" role="tab" data-tab="documents">Documents<span class="og-tab__count" id="tabcount-documents">0</span></button>
       <button class="og-tab" role="tab" data-tab="scan">Scan and cut</button>
       <button class="og-tab" role="tab" data-tab="compliance">Compliance</button>
@@ -86,6 +87,7 @@
 
     <div class="app-panels" id="panels">
       <section class="og-tabpanel is-active" data-panel="overview" id="panel-overview"></section>
+      <section class="og-tabpanel" data-panel="inbox" id="panel-inbox"></section>
       <section class="og-tabpanel" data-panel="documents" id="panel-documents"></section>
       <section class="og-tabpanel" data-panel="scan" id="panel-scan"></section>
       <section class="og-tabpanel" data-panel="compliance" id="panel-compliance"></section>
@@ -129,6 +131,7 @@
 
 
 <script src="src/domain.js"></script>
+<script src="src/mailbox.js"></script>
 <script src="src/extract.js"></script>
 <script src="src/rules.js"></script>
 <script src="src/precut.js"></script>

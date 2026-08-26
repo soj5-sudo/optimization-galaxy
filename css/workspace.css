@@ -212,3 +212,18 @@
   color: var(--og-text-tertiary);
 }
 @media (prefers-reduced-motion: reduce) { .app-film { animation: none; } }
+
+/* the mailbox */
+.app-mail {
+  border-bottom: 1px solid var(--og-border);
+  padding: var(--og-space-3) 0;
+  display: grid; gap: 6px;
+}
+.app-mail:last-child { border-bottom: 0; }
+.app-mail__head { display: flex; align-items: baseline; gap: var(--og-space-2); flex-wrap: wrap; }
+.app-mail__from { font-size: 13px; font-weight: 500; color: var(--og-text-primary); }
+.app-mail__when { font-size: 11px; color: var(--og-text-tertiary); margin-left: auto; }
+.app-mail__subject { font-size: 14px; color: var(--og-text-primary); }
+.app-mail__preview { font-size: 12px; color: var(--og-text-tertiary); line-height: 1.5; }
+.app-mail__att { display: flex; gap: var(--og-space-2); flex-wrap: wrap; }
+.app-mail__why { display: flex; align-items: center; gap: var(--og-space-2); flex-wrap: wrap; margin-top: 2px; }
