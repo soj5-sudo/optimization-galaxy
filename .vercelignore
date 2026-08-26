@@ -1,0 +1,10 @@
+# The hosted build is the static workspace. The local server, the training code
+# and the virtual environment stay out of it, which also stops Vercel detecting
+# this as a Node application and routing every request through a function.
+server.js
+api/
+test/
+.venv/
+__pycache__/
+ml/*.py
+ml/README.md
