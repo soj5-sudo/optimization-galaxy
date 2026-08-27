@@ -39,18 +39,18 @@
   --og-brand-800: #ffffff;
 
   --og-canvas:  #000000;
-  --og-surface: #0a0a0b;
-  --og-sunken:  #050506;
+  --og-surface: rgba(255, 255, 255, 0.07);
+  --og-sunken:  #070708;
 
-  --og-border:        rgba(255,255,255,0.09);
-  --og-border-strong: rgba(255,255,255,0.16);
-  --og-border-heavy:  rgba(255,255,255,0.24);
+  --og-border:        rgba(255, 255, 255, 0.07);
+  --og-border-strong: rgba(255, 255, 255, 0.13);
+  --og-border-heavy:  rgba(255, 255, 255, 0.15);
   --og-border-accent: rgba(196,198,202,0.42);
   --og-border-inverse: rgba(0,0,0,0.6);
 
   --og-text-primary:   #e9ecf2;
-  --og-text-secondary: #a8acb4;
-  --og-text-tertiary:  #82868e;
+  --og-text-secondary: #99a2b2;
+  --og-text-tertiary:  #5d6473;
   --og-text-disabled:  #55585f;
   --og-text-inverse:   #000000;
   --og-text-accent:    #dfe1e5;
@@ -58,7 +58,7 @@
   --og-accent:            #c4c6ca;
   --og-accent-hover:      #dfe1e5;
   --og-accent-active:     #ffffff;
-  --og-accent-soft:       rgba(196,198,202,0.10);
+  --og-accent-soft:       rgba(196, 198, 202, 0.12);
   --og-accent-soft-hover: rgba(196,198,202,0.16);
 
   --og-success:      #4ec08d;
@@ -98,13 +98,13 @@
   --og-space-4: 16px; --og-space-5: 20px; --og-space-6: 24px;
   --og-space-8: 32px; --og-space-10: 40px; --og-space-12: 48px; --og-space-16: 64px;
 
-  --og-radius-xs: 3px; --og-radius-sm: 6px; --og-radius-md: 8px;
-  --og-radius-lg: 10px; --og-radius-xl: 14px; --og-radius-full: 999px;
+  --og-radius-xs: 3px; --og-radius-sm: 6px; --og-radius-md: 11px;
+  --og-radius-lg: 16px; --og-radius-xl: 16px; --og-radius-full: 999px;
 
   --og-duration-instant: 80ms; --og-duration-fast: 130ms;
   --og-duration-base: 180ms; --og-duration-panel: 260ms; --og-duration-slow: 380ms;
   --og-ease-standard: cubic-bezier(0.4,0,0.2,1);
-  --og-ease-out: cubic-bezier(0.22,1,0.36,1);
+  --og-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --og-ease-in: cubic-bezier(0.4,0,1,1);
   --og-ease-panel: cubic-bezier(0.22,1,0.36,1);
 
@@ -132,6 +132,11 @@
   --og-surface-selected: var(--og-accent-soft);
   --og-surface-inverse:  var(--og-grey-900);
   --og-scrim:            rgba(0,0,0,0.72);
+
+  /* the surface treatment used on jewellabs.io: a light film over black */
+  --og-glass:       rgba(255, 255, 255, 0.07);
+  --og-glass-2:     rgba(255, 255, 255, 0.11);
+  --og-glass-line:  rgba(255, 255, 255, 0.15);
 
   --og-border-subtle:   rgba(255,255,255,0.06);
   --og-border-selected: var(--og-border-accent);
@@ -193,6 +198,11 @@
   --og-surface-selected: var(--og-accent-soft);
   --og-surface-inverse:  var(--og-grey-900);
   --og-scrim:            rgba(0,0,0,0.72);
+
+  /* the surface treatment used on jewellabs.io: a light film over black */
+  --og-glass:       rgba(255, 255, 255, 0.07);
+  --og-glass-2:     rgba(255, 255, 255, 0.11);
+  --og-glass-line:  rgba(255, 255, 255, 0.15);
 
   --og-border-subtle:   rgba(255,255,255,0.06);
   --og-border-selected: var(--og-border-accent);
@@ -389,7 +399,10 @@ hr,
 .og-appbar {
   position: relative; z-index: var(--og-z-appbar); flex: 0 0 auto; display: flex; align-items: center;
   gap: var(--og-space-4); height: var(--og-appbar-h); padding: 0 var(--og-space-4);
-  background: var(--og-surface); box-shadow: var(--og-shadow-header);
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: saturate(140%) blur(14px);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+  box-shadow: var(--og-shadow-header);
 }
 .og-appbar__brand {
   display: flex; align-items: center; gap: var(--og-space-2); padding-right: var(--og-space-4);
@@ -423,7 +436,7 @@ hr,
 .og-rail {
   z-index: var(--og-z-rail); flex: 0 0 var(--og-rail-w); width: var(--og-rail-w); display: flex;
   flex-direction: column; gap: var(--og-space-6);
-  padding: var(--og-space-4) var(--og-space-3) var(--og-space-4); background: var(--og-surface);
+  padding: var(--og-space-4) var(--og-space-3) var(--og-space-4); background: var(--og-sunken);
   border-right: var(--og-hairline); overflow-y: auto; overscroll-behavior: contain;
 }
 .og-rail__section { display: flex; flex-direction: column; gap: var(--og-space-2); }
@@ -447,7 +460,7 @@ hr,
 
 .og-inspector {
   flex: 0 0 var(--og-inspector-w); width: var(--og-inspector-w); display: flex; flex-direction: column;
-  min-height: 0; background: var(--og-surface); border-left: var(--og-hairline);
+  min-height: 0; background: var(--og-sunken); border-left: var(--og-hairline);
 }
 .og-inspector__header {
   flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between;
