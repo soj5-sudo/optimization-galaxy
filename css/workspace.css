@@ -227,3 +227,7 @@
 .app-mail__preview { font-size: 12px; color: var(--og-text-tertiary); line-height: 1.5; }
 .app-mail__att { display: flex; gap: var(--og-space-2); flex-wrap: wrap; }
 .app-mail__why { display: flex; align-items: center; gap: var(--og-space-2); flex-wrap: wrap; margin-top: 2px; }
+
+/* the explainer steps: the title on its own line, the detail beneath it */
+.og-step__text > .og-step__label { display: block; margin-bottom: 2px; }
+.og-step__text > .og-check__desc { display: block; }

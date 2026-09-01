@@ -471,10 +471,36 @@
     const p = $('panel-overview');
     p.innerHTML = '';
 
+    // Someone opening this link cold gets the whole idea before anything else.
     const intro = el('div', 'app-section');
     intro.append(el('p', 'app-plain', 'One page per stone, shared by the three companies that touch it.'));
-    intro.append(el('p', 'app-plain-sub', 'The factory cuts it, the exporter ships it, the buyer pays for it. They all read and write this same page, so the papers, the price and the cutting plan can never disagree with each other.'));
+    intro.append(el('p', 'app-plain-sub', 'A diamond passes from the factory that cuts it, to the exporter that ships it, to the buyer that pays for it. Today those three send each other paperwork on WhatsApp and email, and somebody retypes it. Here they read and write one page, so the papers, the price and the cutting plan cannot disagree.'));
     p.append(intro);
+
+    // what actually happens when the button is pressed, in four lines
+    const how = card('What happens when you press Run shipment',
+      'Four jobs, in order, on this one stone. Roughly fifteen seconds.');
+    const howSteps = [
+      ['It reads the paperwork', 'The mine certificate, the lab report and the invoice are read by machine. Anything it is unsure of is held for a person rather than guessed.'],
+      ['It looks inside the stone', 'The scan goes through a model that marks the flaws, then a planner fits polished stones around them and decides what is worth cutting at all.'],
+      ['It proves where the stone came from', 'Every field is checked against the other two documents. If they disagree the parcel stops here, at the desk, instead of at the border.'],
+      ['It prices it and files', 'Price comes off the trade list less the discount and the duty. Then a named person signs, and the statement is sealed.'],
+    ];
+    const howList = el('div', 'og-stepper og-stepper--vertical');
+    howSteps.forEach(([t, d], i) => {
+      const st = el('div', 'og-step og-step--done');
+      st.append(el('span', 'og-step__marker', String(i + 1)));
+      const tx = el('div', 'og-step__text');
+      tx.append(el('span', 'og-step__label', t));
+      tx.append(el('span', 'og-check__desc', d));
+      st.append(tx);
+      howList.append(st);
+    });
+    how.body.append(howList);
+
+    const why = el('p', 'og-hint', 'Why it matters: since January 2026 a natural polished diamond of half a carat or more cannot enter Europe without this filing. A wrong origin costs up to forty percent of the shipment plus the goods. Ten people usually build this by hand over seven to nine days.');
+    how.body.append(why);
+    p.append(how);
 
     // the stone, as a picture, first
     const shot = el('div', 'app-stone-shot');
